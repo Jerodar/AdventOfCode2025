@@ -1,4 +1,5 @@
-using System.Net.Mail;
+using System;
+using System.Collections.Generic;
 
 namespace AdventOfCode2025.Puzzles;
 

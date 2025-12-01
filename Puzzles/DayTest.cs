@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace AdventOfCode2025.Puzzles;
 
 public static class DayTest

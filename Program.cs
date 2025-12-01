@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using AdventOfCode2025;
+using System;
 using AdventOfCode2025.Puzzles;
 
 Console.WriteLine("Advent of Code 2025");
