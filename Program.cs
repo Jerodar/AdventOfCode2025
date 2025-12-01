@@ -3,6 +3,6 @@
 using AdventOfCode2025;
 using AdventOfCode2025.Puzzles;
 
-Console.WriteLine("Advent of Code 2024");
+Console.WriteLine("Advent of Code 2025");
 Console.WriteLine("");
 Day01.Run();

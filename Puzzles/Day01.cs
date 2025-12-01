@@ -1,16 +1,51 @@
+using System.Net.Mail;
+
 namespace AdventOfCode2025.Puzzles;
 
 public static class Day01
 {
     public static void Run()
     {
-        Console.WriteLine("Test script to test InputReader");
+        Console.WriteLine("Day 1 Part One");
         Console.WriteLine();
 
         List<string> inputs = Utility.InputReader.ReadAllLines("Day01");
 
         int current = 50;
         int answer = 0;
+        foreach (string input in inputs)
+        {
+            int number = int.Parse(input[1..]);
+
+            if (input[0] == 'L')
+            {
+                current -= number;
+                while (current < 0)
+                {
+                    current += 100;
+                }
+            }
+            else
+            {
+                current += number;
+                while (current > 99)
+                {
+                    current -= 100;
+                }
+            }
+            if (current == 0)
+            {
+                answer += 1;
+            }
+        }
+        Console.WriteLine(answer);
+        Console.WriteLine();
+        
+        Console.WriteLine("Day 1 Part Two");
+        Console.WriteLine();
+        
+        current = 50;
+        answer = 0;
         int index = 0;
         foreach (string input in inputs)
         {
