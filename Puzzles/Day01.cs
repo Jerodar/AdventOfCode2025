@@ -19,20 +19,21 @@ public static class Day01
 
             if (input[0] == 'L')
             {
-                current -= number;
-                while (current < 0)
-                {
-                    current += 100;
-                }
+                number *= -1;
             }
-            else
+
+            number %= 100;
+            current += number;
+
+            if (current < 0)
             {
-                current += number;
-                while (current > 99)
-                {
-                    current -= 100;
-                }
+                current += 100;
             }
+            else if (current > 99)
+            {
+                current -= 100;
+            }
+            
             if (current == 0)
             {
                 answer += 1;
@@ -80,7 +81,7 @@ public static class Day01
             }
             
             answer += tempAnswer;
-            Console.WriteLine($"{index,4}: {input,-4} {current,2} +{tempAnswer}");
+            //Console.WriteLine($"{index,4}: {input,-4} {current,2} +{tempAnswer}");
         }
         Console.WriteLine();
         Console.WriteLine(answer);
