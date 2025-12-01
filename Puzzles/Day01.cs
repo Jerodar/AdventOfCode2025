@@ -54,34 +54,40 @@ public static class Day01
             int tempAnswer = 0;
             int number = int.Parse(input[1..]);
 
+            int loops = number / 100;
+            tempAnswer += loops;
+            
+            int remainder = number % 100;
             if (input[0] == 'L')
             {
-                current -= number;
-                while (current < 0)
+                current -= remainder;
+                
+                if (current < 0)
                 {
-                    if (current != -number)
+                    if (current != -remainder)
                     { // started at zero so did not pass zero the first cycle
-                        tempAnswer += 1;
+                        tempAnswer++;
                     }
                     current += 100;
                 }
                 if (current == 0)
                 {
-                    tempAnswer += 1;
+                    tempAnswer++;
                 }
             }
             else
             {
-                current += number;
-                while (current > 99)
+                current += remainder;
+
+                if (current > 99)
                 {
                     current -= 100;
-                    tempAnswer += 1;
-                }
+                    tempAnswer++;
+                } 
             }
             
             answer += tempAnswer;
-            //Console.WriteLine($"{index,4}: {input,-4} {current,2} +{tempAnswer}");
+            Console.WriteLine($"{index,4}: {input,-4} {current,2} +{tempAnswer}");
         }
         Console.WriteLine();
         Console.WriteLine(answer);
