@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using AdventOfCode2025.Utility;
 
 namespace AdventOfCode2025.Puzzles;
 
@@ -7,15 +9,36 @@ public static class Day01
 {
     public static void Run()
     {
-        Console.WriteLine("Day 1 Part One");
+        var inputs = InputReader.ReadAllLines("Day01");
+        
+        Console.WriteLine();
+        Console.WriteLine("Day 01 Part One");
+        long answer = 0;
+        TimeSpan time = Benchmark.Time(() =>
+        {
+            answer = RunPartOne(inputs);
+        });
+        Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
+        
         Console.WriteLine();
 
-        List<string> inputs = Utility.InputReader.ReadAllLines("Day01");
-
+        Console.WriteLine("Day 01 Part Two");
+        time = Benchmark.Time(() =>
+        {
+            answer = RunPartTwo(inputs);
+        });
+        Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
+    }
+    
+    private static long RunPartOne(List<string> inputs)
+    {
+        long answer = 0;
         int current = 50;
-        int answer = 0;
+        int index = 0;
+        
         foreach (string input in inputs)
         {
+            index++;
             int number = int.Parse(input[1..]);
 
             if (input[0] == 'L')
@@ -39,16 +62,19 @@ public static class Day01
             {
                 answer += 1;
             }
+            Debug.WriteLine($"{index,4}: {input,-4} {current,2} +{answer}");
         }
-        Console.WriteLine(answer);
-        Console.WriteLine();
-        
-        Console.WriteLine("Day 1 Part Two");
-        Console.WriteLine();
-        
-        current = 50;
-        answer = 0;
+        Debug.WriteLine("");
+
+        return answer;
+    }
+
+    private static long RunPartTwo(List<string> inputs)
+    {
+        long answer = 0;
+        int current = 50;
         int index = 0;
+        
         foreach (string input in inputs)
         {
             index++;
@@ -88,9 +114,10 @@ public static class Day01
             }
             
             answer += tempAnswer;
-            Console.WriteLine($"{index,4}: {input,-4} {current,2} +{tempAnswer}");
+            Debug.WriteLine($"{index,4}: {input,-4} {current,2} +{tempAnswer}");
         }
-        Console.WriteLine();
-        Console.WriteLine(answer);
+        Debug.WriteLine("");
+
+        return answer;
     }
 }

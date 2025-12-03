@@ -4,5 +4,4 @@ using System;
 using AdventOfCode2025.Puzzles;
 
 Console.WriteLine("Advent of Code 2025");
-Console.WriteLine("");
 Day03.Run();

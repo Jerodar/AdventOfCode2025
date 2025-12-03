@@ -10,7 +10,7 @@ public static class Day03
     public static void Run()
     {
         var inputs = InputReader.ReadAllLines("Day03");
-        
+        Console.WriteLine();
         Console.WriteLine("Day 3 Part One");
         long answer = 0;
         TimeSpan time = Benchmark.Time(() =>
@@ -27,7 +27,6 @@ public static class Day03
             answer = RunPartTwo(inputs);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
-        Console.WriteLine(answer);
     }
     
     private static long RunPartOne(List<string> inputs)
