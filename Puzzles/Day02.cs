@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using AdventOfCode2025.Utility;
 
 namespace AdventOfCode2025.Puzzles;
@@ -33,18 +32,40 @@ public static class Day02
     private static long RunPartOne(List<string> inputs)
     {
         long answer = 0;
-        var regex = new Regex(@"^(.+)\1$");
         foreach (string input in inputs)
         {
-            var parts = input.Split('-');
+            string[] parts = input.Split('-');
+            int minDigits = parts[0].Length;
+            int maxDigits = parts[1].Length;
             long first = long.Parse(parts[0]);
             long last = long.Parse(parts[1]);
-            for (long i = first; i <= last; i++)
+
+            for (int i = minDigits; i <= maxDigits; i++)
             {
-                if (regex.Count(i.ToString()) > 0)
+                if (i == 1) continue;
+                if (i % 2 == 1) continue;
+                
+                long maxFactor = (long)Math.Pow(10.0, i);
+                long halfFactor = (long)Math.Pow(10.0, i / 2);
+                
+                // Get starting number based on start of range
+                long current = first / (maxFactor/halfFactor);
+                if (current < halfFactor / 10)
+                { // current would start with zero here, so increase to the first number starting with 1 (ie 080 to 100)
+                    current = halfFactor / 10;
+                }
+                long result = current * halfFactor + current;
+            
+                while (current < halfFactor && result <= last && result < maxFactor)
                 {
-                    Debug.WriteLine($"Matched {i} of range {input}");
-                    answer += i;
+                    if (result >= first)
+                    {  // number within range and not a duplicate, save it!
+                        Debug.WriteLine($"Matched {result} of range {input}");
+                        answer += result;
+                    }
+
+                    current++;
+                    result = current * halfFactor + current;
                 }
             }
         }
@@ -52,22 +73,57 @@ public static class Day02
 
         return answer;
     }
-
+    
     private static long RunPartTwo(List<string> inputs)
     {
         long answer = 0;
-        var regex = new Regex(@"^(.+)\1+$");
         foreach (string input in inputs)
         {
-            var parts = input.Split('-');
+            string[] parts = input.Split('-');
+            int minDigits = parts[0].Length;
+            int maxDigits = parts[1].Length;
             long first = long.Parse(parts[0]);
             long last = long.Parse(parts[1]);
-            for (long i = first; i <= last; i++)
+            HashSet<long> pastResults = [];
+
+            for (int i = minDigits; i <= maxDigits; i++)
             {
-                if (regex.Count(i.ToString()) > 0)
+                if (i == 1) continue;
+                
+                long maxFactor = (long)Math.Pow(10.0, i);
+                long halfFactor = (long)Math.Pow(10.0, i / 2);
+                long currentFactor = 10;
+
+                while (currentFactor <= halfFactor)
                 {
-                    Debug.WriteLine($"Matched {i} of range {input}");
-                    answer += i;
+                    // Get starting number based on start of range
+                    long current = first / (maxFactor/currentFactor);
+                    if (current < currentFactor / 10)
+                    { // current would start with zero here, so increase to the first number starting with 1 (ie 080 to 100)
+                        current = currentFactor / 10;
+                    }
+                    long result = current;
+                    
+                    // Copy the number until the amount of digits equals i (ie from 34 to 343434)
+                    while (result * currentFactor < maxFactor)
+                        result = result * currentFactor + current;
+                
+                    while (current < currentFactor && result <= last && result < maxFactor)
+                    {
+                        if (result >= first && !pastResults.Contains(result))
+                        {  // number within range and not a duplicate, save it!
+                            Debug.WriteLine($"Matched {result} of range {input}");
+                            answer += result;
+                            pastResults.Add(result);
+                        }
+
+                        current++;
+                        result = current;
+                        while (result * 10 < maxFactor)
+                            result = result * currentFactor + current;
+                    }
+                    
+                    currentFactor *= 10;
                 }
             }
         }

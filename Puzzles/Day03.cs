@@ -59,7 +59,7 @@ public static class Day03
                 startIndex = FindFirstIndexOfMax(startIndex + 1, endIndex, input);
                 
                 int number = input[startIndex] - '0';
-                long factor = (long)Math.Pow(10.0, digit - 1.0); 
+                long factor = (long)Math.Pow(10.0, digit - 1); 
                 result += number * factor;
             }
 
