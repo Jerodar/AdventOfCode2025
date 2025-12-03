@@ -5,4 +5,4 @@ using AdventOfCode2025.Puzzles;
 
 Console.WriteLine("Advent of Code 2025");
 Console.WriteLine("");
-Day02.Run();
+Day03.Run();
