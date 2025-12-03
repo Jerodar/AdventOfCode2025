@@ -25,6 +25,29 @@ public static class Day03
         }
         Console.WriteLine();
         Console.WriteLine(answer);
+        
+        Console.WriteLine();
+        
+        Console.WriteLine("Day 3 Part Two");
+        Console.WriteLine();
+
+        answer = 0;
+        foreach (string input in inputs)
+        {
+            long result = 0;
+            int startIndex = - 1;
+            for (int digit = 12; digit > 0; digit--)
+            {
+                int endIndex = input.Length - digit + 1;
+                startIndex = FindMax(startIndex + 1, endIndex, input);
+                result += (long)((input[startIndex] - 48) * Math.Pow(10.0,digit - 1.0));
+            }
+
+            Console.WriteLine(result);
+            answer += result;
+        }
+        Console.WriteLine();
+        Console.WriteLine(answer);
     }
 
     private static int FindMax(int start, int end, string input)
