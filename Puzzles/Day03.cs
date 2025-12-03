@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
+using AdventOfCode2025.Utility;
 
 namespace AdventOfCode2025.Puzzles;
 
@@ -8,11 +9,29 @@ public static class Day03
 {
     public static void Run()
     {
+        var inputs = InputReader.ReadAllLines("Day03");
+        
         Console.WriteLine("Day 3 Part One");
+        long answer = 0;
+        TimeSpan time = Benchmark.Time(() =>
+        {
+            answer = RunPartOne(inputs);
+        });
+        Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
+        
         Console.WriteLine();
 
-        var inputs = Utility.InputReader.ReadAllLines("Day03");
-
+        Console.WriteLine("Day 3 Part Two");
+        time = Benchmark.Time(() =>
+        {
+            answer = RunPartTwo(inputs);
+        });
+        Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
+        Console.WriteLine(answer);
+    }
+    
+    private static long RunPartOne(List<string> inputs)
+    {
         long answer = 0;
         foreach (string input in inputs)
         {
@@ -20,18 +39,17 @@ public static class Day03
             int secondIndex = FindFirstIndexOfMax(firstIndex + 1, input.Length, input);
             
             int result = (input[firstIndex] - '0')*10 + (input[secondIndex] - '0');
-            Console.WriteLine(result);
+            Debug.WriteLine(result);
             answer += result;
         }
-        Console.WriteLine();
-        Console.WriteLine(answer);
-        
-        Console.WriteLine();
-        
-        Console.WriteLine("Day 3 Part Two");
-        Console.WriteLine();
+        Debug.WriteLine("");
 
-        answer = 0;
+        return answer;
+    }
+
+    private static long RunPartTwo(List<string> inputs)
+    {
+        long answer = 0;
         foreach (string input in inputs)
         {
             long result = 0;
@@ -46,11 +64,12 @@ public static class Day03
                 result += number * factor;
             }
 
-            Console.WriteLine(result);
+            Debug.WriteLine(result);
             answer += result;
         }
-        Console.WriteLine();
-        Console.WriteLine(answer);
+        Debug.WriteLine("");
+
+        return answer;
     }
 
     private static int FindFirstIndexOfMax(int start, int end, string input)
