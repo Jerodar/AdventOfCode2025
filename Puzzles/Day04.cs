@@ -35,40 +35,31 @@ public static class Day04
         long answer = 0;
         int maxY = inputs.Count - 1;
         int maxX = inputs[0].Length - 1;
+        
+        bool[,] map =  CreateMap(inputs);
+        
         for (int y = 0; y <= maxY; y++)
         {
             for (int x = 0; x <= maxX; x++)
             {
-                if (inputs[y][x] != '@')
-                {
-                    Debug.Write('.');
-                    continue;
-                }
+                if (!map[y,x]) continue;
                 
                 int neighbours = 0;
-                if (x > 0 && inputs[y][x - 1] == '@') neighbours++;
-                if (y > 0 && inputs[y - 1][x] == '@') neighbours++;
-                if (x < maxX && inputs[y][x + 1] == '@') neighbours++;
-                if (y < maxY && inputs[y + 1][x] == '@') neighbours++;
-                if (x > 0 && y > 0 && inputs[y - 1][x - 1] == '@') neighbours++;
-                if (x > 0 && y < maxY && inputs[y + 1][x - 1] == '@') neighbours++;
-                if (x < maxX && y > 0 && inputs[y - 1][x + 1] == '@') neighbours++;
-                if (x < maxX && y < maxY && inputs[y + 1][x + 1] == '@') neighbours++;
+                if (x > 0 && map[y,x - 1]) neighbours++;
+                if (y > 0 && map[y - 1,x]) neighbours++;
+                if (x < maxX && map[y,x + 1]) neighbours++;
+                if (y < maxY && map[y + 1,x]) neighbours++;
+                if (x > 0 && y > 0 && map[y - 1,x - 1]) neighbours++;
+                if (x > 0 && y < maxY && map[y + 1,x - 1]) neighbours++;
+                if (x < maxX && y > 0 && map[y - 1,x + 1]) neighbours++;
+                if (x < maxX && y < maxY && map[y + 1,x + 1]) neighbours++;
 
                 if (neighbours < 4)
                 {
-                    Debug.Write('X');
-                    answer ++;
-                }
-                else
-                {
-                    Debug.Write('@');
+                    answer++;
                 }
             }
-            Debug.WriteLine("");
         }
-        
-        Debug.WriteLine("");
 
         return answer;
     }
@@ -76,20 +67,12 @@ public static class Day04
     private static long RunPartTwo(List<string> inputs)
     {
         long answer = 0;
-        bool[,] map =  new bool[inputs[0].Length, inputs.Count];
         int maxY = inputs.Count - 1;
         int maxX = inputs[0].Length - 1;
-        
-        for (int y = 0; y <= maxY; y++)
-        {
-            for (int x = 0; x <= maxX; x++)
-            {
-                if (inputs[y][x] == '@')
-                    map[y, x] = true;
-            }
-        }
-
         long cleaned = 0;
+        
+        bool[,] map =  CreateMap(inputs);
+        
         do
         {
             cleaned = CleanUpMap(map, maxX, maxY);
@@ -98,6 +81,21 @@ public static class Day04
         
 
         return answer;
+    }
+
+    private static bool[,] CreateMap(List<string> inputs)
+    {
+        bool[,] map =  new bool[inputs[0].Length, inputs.Count];
+        
+        for (int y = 0; y < inputs.Count; y++)
+        {
+            for (int x = 0; x < inputs[0].Length; x++)
+            {
+                if (inputs[y][x] == '@')
+                    map[y, x] = true;
+            }
+        }
+        return map;
     }
 
     private static int CleanUpMap(bool[,] map, int maxX, int maxY)
