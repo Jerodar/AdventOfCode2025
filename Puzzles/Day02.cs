@@ -18,6 +18,7 @@ public static class Day02
             answer = RunPartOne(inputs[0]);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
+        Console.WriteLine(answer == 52316131093 ? $"Success!" : $"Fail!");
         
         Console.WriteLine();
 
@@ -27,6 +28,7 @@ public static class Day02
             answer = RunPartTwo(inputs[0]);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
+        Console.WriteLine(answer == 69564213293 ? $"Success!" : $"Fail!");
     }
     
     private static long RunPartOne(List<string> inputs)

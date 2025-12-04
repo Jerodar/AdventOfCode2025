@@ -11,22 +11,24 @@ public static class Day03
     {
         var inputs = InputReader.ReadAllLines("Day03");
         Console.WriteLine();
-        Console.WriteLine("Day 3 Part One");
+        Console.WriteLine("Day 03 Part One");
         long answer = 0;
         TimeSpan time = Benchmark.Time(() =>
         {
             answer = RunPartOne(inputs);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
+        Console.WriteLine(answer == 17092 ? $"Success!" : $"Fail!");
         
         Console.WriteLine();
 
-        Console.WriteLine("Day 3 Part Two");
+        Console.WriteLine("Day 03 Part Two");
         time = Benchmark.Time(() =>
         {
             answer = RunPartTwo(inputs);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
+        Console.WriteLine(answer == 170147128753455 ? $"Success!" : $"Fail!");
     }
     
     private static long RunPartOne(List<string> inputs)
