@@ -42,7 +42,6 @@ public static class Day02
 
             for (int i = minDigits; i <= maxDigits; i++)
             {
-                if (i == 1) continue;
                 if (i % 2 == 1) continue;
                 
                 long maxFactor = (long)Math.Pow(10.0, i);
