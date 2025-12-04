@@ -76,9 +76,56 @@ public static class Day04
     private static long RunPartTwo(List<string> inputs)
     {
         long answer = 0;
+        bool[,] map =  new bool[inputs[0].Length, inputs.Count];
+        int maxY = inputs.Count - 1;
+        int maxX = inputs[0].Length - 1;
+        
+        for (int y = 0; y <= maxY; y++)
+        {
+            for (int x = 0; x <= maxX; x++)
+            {
+                if (inputs[y][x] == '@')
+                    map[y, x] = true;
+            }
+        }
 
-        Debug.WriteLine("");
+        long cleaned = 0;
+        do
+        {
+            cleaned = CleanUpMap(map, maxX, maxY);
+            answer += cleaned;
+        } while (cleaned > 0);
+        
 
         return answer;
+    }
+
+    private static int CleanUpMap(bool[,] map, int maxX, int maxY)
+    {
+        int papersCleaned = 0;
+        for (int y = 0; y <= maxY; y++)
+        {
+            for (int x = 0; x <= maxX; x++)
+            {
+                if (!map[y,x]) continue;
+                
+                int neighbours = 0;
+                if (x > 0 && map[y,x - 1]) neighbours++;
+                if (y > 0 && map[y - 1,x]) neighbours++;
+                if (x < maxX && map[y,x + 1]) neighbours++;
+                if (y < maxY && map[y + 1,x]) neighbours++;
+                if (x > 0 && y > 0 && map[y - 1,x - 1]) neighbours++;
+                if (x > 0 && y < maxY && map[y + 1,x - 1]) neighbours++;
+                if (x < maxX && y > 0 && map[y - 1,x + 1]) neighbours++;
+                if (x < maxX && y < maxY && map[y + 1,x + 1]) neighbours++;
+
+                if (neighbours < 4)
+                {
+                    papersCleaned++;
+                    map[y,x] = false;
+                }
+            }
+        }
+        return papersCleaned;
     }
 }
