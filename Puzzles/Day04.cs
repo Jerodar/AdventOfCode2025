@@ -46,15 +46,7 @@ public static class Day04
             {
                 if (!map[y,x]) continue;
                 
-                int neighbours = 0;
-                if (x > 0 && map[y,x - 1]) neighbours++;
-                if (y > 0 && map[y - 1,x]) neighbours++;
-                if (x < maxX && map[y,x + 1]) neighbours++;
-                if (y < maxY && map[y + 1,x]) neighbours++;
-                if (x > 0 && y > 0 && map[y - 1,x - 1]) neighbours++;
-                if (x > 0 && y < maxY && map[y + 1,x - 1]) neighbours++;
-                if (x < maxX && y > 0 && map[y - 1,x + 1]) neighbours++;
-                if (x < maxX && y < maxY && map[y + 1,x + 1]) neighbours++;
+                int neighbours = CountNeighbors(map, x, y, maxX, maxY);
 
                 if (neighbours < 4)
                 {
@@ -80,7 +72,6 @@ public static class Day04
             cleaned = CleanUpMap(map, maxX, maxY);
             answer += cleaned;
         } while (cleaned > 0);
-        
 
         return answer;
     }
@@ -108,16 +99,8 @@ public static class Day04
             for (int x = 0; x <= maxX; x++)
             {
                 if (!map[y,x]) continue;
-                
-                int neighbours = 0;
-                if (x > 0 && map[y,x - 1]) neighbours++;
-                if (y > 0 && map[y - 1,x]) neighbours++;
-                if (x < maxX && map[y,x + 1]) neighbours++;
-                if (y < maxY && map[y + 1,x]) neighbours++;
-                if (x > 0 && y > 0 && map[y - 1,x - 1]) neighbours++;
-                if (x > 0 && y < maxY && map[y + 1,x - 1]) neighbours++;
-                if (x < maxX && y > 0 && map[y - 1,x + 1]) neighbours++;
-                if (x < maxX && y < maxY && map[y + 1,x + 1]) neighbours++;
+
+                int neighbours = CountNeighbors(map, x, y, maxX, maxY);
 
                 if (neighbours < 4)
                 {
@@ -127,5 +110,21 @@ public static class Day04
             }
         }
         return papersCleaned;
+    }
+
+    private static int CountNeighbors(bool[,] map, int x, int y, int maxX, int maxY)
+    {
+        int neighbours = 0;
+        
+        if (x > 0 && map[y,x - 1]) neighbours++;
+        if (y > 0 && map[y - 1,x]) neighbours++;
+        if (x < maxX && map[y,x + 1]) neighbours++;
+        if (y < maxY && map[y + 1,x]) neighbours++;
+        if (x > 0 && y > 0 && map[y - 1,x - 1]) neighbours++;
+        if (x > 0 && y < maxY && map[y + 1,x - 1]) neighbours++;
+        if (x < maxX && y > 0 && map[y - 1,x + 1]) neighbours++;
+        if (x < maxX && y < maxY && map[y + 1,x + 1]) neighbours++;
+        
+        return neighbours;
     }
 }
