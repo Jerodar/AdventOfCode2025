@@ -36,6 +36,29 @@ public static class InputReader
 
         return result;
     }
+    
+    public static char[,] ReadGrid(string name)
+    {
+        char[,] result = new char[,] { };
+        try
+        {
+            string[] lines = File.ReadAllLines(InputDir(name));
+            result = new char[lines.Length, lines[0].Length];
+            for (int i = 0; i < lines.Length; i++)
+            {
+                for (int j = 0; j < lines[0].Length; j++)
+                {
+                    result[i,j] = lines[i][j];
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+
+        return result;
+    }
 
     public static List<List<string>> ReadCsv(string name, char  separator = ',')
     {
