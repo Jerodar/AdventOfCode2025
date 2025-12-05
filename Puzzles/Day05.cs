@@ -29,7 +29,7 @@ public static class Day05
             answer = RunPartTwo(inputs);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
-        Console.WriteLine(answer == -1 ? $"Success!" : $"Fail!");
+        Console.WriteLine(answer == 352807801032167 ? $"Success!" : $"Fail!");
     }
     
     private static long RunPartOne(List<string> inputs)
@@ -79,9 +79,55 @@ public static class Day05
     private static long RunPartTwo(List<string> inputs)
     {
         long answer = 0;
+        var ranges = new SortedDictionary<long, long>();
 
+        int index = 0;
+        for (; inputs[index] != string.Empty; index++)
+        {
+            string[] parts =  inputs[index].Split('-');
+            long start = long.Parse(parts[0]);
+            long end = long.Parse(parts[1]);
+            if (!ranges.TryAdd(start, end) && end > ranges[start])
+            {
+                ranges[start] = end;
+            }
+        }
+
+        answer = CountFresh(ranges);
+        
         Debug.WriteLine("");
 
         return answer;
+    }
+
+    private static long CountFresh(SortedDictionary<long, long> ranges)
+    {
+        long count = 0;
+        long previousKey = 0;
+        foreach (long key in ranges.Keys)
+        {
+            if (previousKey == 0)
+            {
+                previousKey = key;
+                continue;
+            }
+
+            long previousEnd = ranges[previousKey];
+            if (previousEnd > ranges[key])
+            {
+                Debug.WriteLine($"Skipping                              {key, 16} - {ranges[key], 16}");
+                continue;
+            }
+            if (previousEnd >= key)
+            {
+                previousEnd = key - 1;
+            }
+            Debug.WriteLine($"Adding {previousEnd - previousKey + 1, 16} to count from {previousKey, 16} - {previousEnd, 16}");
+            count += previousEnd - previousKey + 1;
+            previousKey = key;
+        }
+        Debug.WriteLine($"Adding {ranges[previousKey] - previousKey + 1, 16} to count from {previousKey, 16} - {ranges[previousKey], 16}");
+        count += ranges[previousKey] - previousKey + 1;
+        return count;
     }
 }
