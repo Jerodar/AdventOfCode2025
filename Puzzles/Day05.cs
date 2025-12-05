@@ -50,30 +50,75 @@ public static class Day05
         }
 
         index++;
+        
+        var ingredients = new SortedSet<long>();
         for (; index < inputs.Count; index++)
         {
-            long current = long.Parse(inputs[index]);
-            if (IsFresh(current, ranges)) answer++;
+            ingredients.Add(long.Parse(inputs[index]));
         }
+        
+        answer = CountFresh(ingredients, ranges);
 
         Debug.WriteLine("");
 
         return answer;
     }
 
-    private static bool IsFresh(long input, SortedDictionary<long, long> ranges)
+    private static long CountFresh(SortedSet<long> ingredients, SortedDictionary<long, long> ranges)
     {
-        foreach (var start in ranges.Keys)
+        long count = 0;
+        long previousKey = 0;
+        var ingredientIter = ingredients.GetEnumerator();
+        
+        foreach (long key in ranges.Keys)
         {
-            if (start > input) continue;
-            if (start <= input && input <= ranges[start])
+            if (previousKey == 0)
             {
-                Debug.WriteLine($"{input} is in range {start} - {ranges[start]}");
-                return true;
+                previousKey = key;
+                continue;
             }
+
+            long previousEnd = ranges[previousKey];
+            if (previousEnd > ranges[key])
+            {
+                Debug.WriteLine($"Skipping                         {key, 16} - {ranges[key], 16}");
+                continue;
+            }
+            if (previousEnd >= key)
+            {
+                previousEnd = key - 1;
+            }
+
+            while (ingredientIter.Current < previousKey)
+            {
+                Debug.WriteLine($"{ingredientIter.Current, 16} is spoiled from {previousKey, 16} - {previousEnd, 16}");
+                ingredientIter.MoveNext();
+            }
+
+            while (ingredientIter.Current >= previousKey && ingredientIter.Current <= previousEnd)
+            {
+                Debug.WriteLine($"{ingredientIter.Current, 16} is fresh   from {previousKey, 16} - {previousEnd, 16}");
+                count++;
+                ingredientIter.MoveNext();
+            }
+            
+            previousKey = key;
+        }
+        
+        while (ingredientIter.Current < previousKey)
+        {
+            Debug.WriteLine($"{ingredientIter.Current, 16} is spoiled from {previousKey, 16} - {ranges[previousKey], 16}");
+            ingredientIter.MoveNext();
         }
 
-        return false;
+        while (ingredientIter.Current >= previousKey && ingredientIter.Current <= ranges[previousKey])
+        {
+            Debug.WriteLine($"{ingredientIter.Current, 16} is fresh   from {previousKey, 16} - {ranges[previousKey], 16}");
+            count++;
+            ingredientIter.MoveNext();
+        }
+        
+        return count;
     }
 
     private static long RunPartTwo(List<string> inputs)
@@ -93,14 +138,14 @@ public static class Day05
             }
         }
 
-        answer = CountFresh(ranges);
+        answer = CountAllFresh(ranges);
         
         Debug.WriteLine("");
 
         return answer;
     }
 
-    private static long CountFresh(SortedDictionary<long, long> ranges)
+    private static long CountAllFresh(SortedDictionary<long, long> ranges)
     {
         long count = 0;
         long previousKey = 0;
