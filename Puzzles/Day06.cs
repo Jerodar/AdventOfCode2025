@@ -19,7 +19,7 @@ public static class Day06
             answer = RunPartOne(inputs);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
-        Console.WriteLine(answer == 4277556 ? $"Success!" : $"Fail!");
+        Console.WriteLine(answer == 6891729672676 ? $"Success!" : $"Fail!");
         
         Console.WriteLine();
 
@@ -29,7 +29,7 @@ public static class Day06
             answer = RunPartTwo(inputs);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
-        Console.WriteLine(answer == -1 ? $"Success!" : $"Fail!");
+        Console.WriteLine(answer == 9770311947567 ? $"Success!" : $"Fail!");
     }
     
     private static long RunPartOne(List<string> inputs)
@@ -118,7 +118,62 @@ public static class Day06
     {
         long answer = 0;
 
-        Debug.WriteLine("");
+        int index = inputs[4].Length - 1;
+
+        while (index > 0)
+        {
+            long[] numbers = [0,0,0,0,0];
+            long tempAnswer = 0;
+            int numIndex = 0;
+            
+            while (index > 0 && inputs[4][index] == ' ')
+            {
+                if (inputs[0][index] != ' ')
+                    numbers[numIndex] = numbers[numIndex] * 10 + inputs[0][index] - '0';
+                if (inputs[1][index] != ' ')
+                    numbers[numIndex] = numbers[numIndex] * 10 + inputs[1][index] - '0';
+                if (inputs[2][index] != ' ')
+                    numbers[numIndex] = numbers[numIndex] * 10 + inputs[2][index] - '0';
+                if (inputs[3][index] != ' ')
+                    numbers[numIndex] = numbers[numIndex] * 10 + inputs[3][index] - '0';
+                numIndex++;
+                index--;
+            }
+            
+            if (inputs[0][index] != ' ')
+                numbers[numIndex] = numbers[numIndex] * 10 + inputs[0][index] - '0';
+            if (inputs[1][index] != ' ')
+                numbers[numIndex] = numbers[numIndex] * 10 + inputs[1][index] - '0';
+            if (inputs[2][index] != ' ')
+                numbers[numIndex] = numbers[numIndex] * 10 + inputs[2][index] - '0';
+            if (inputs[3][index] != ' ')
+                numbers[numIndex] = numbers[numIndex] * 10 + inputs[3][index] - '0';
+            
+            switch (inputs[4][index])
+            {
+                case '+':
+                    foreach (long number in numbers)
+                    {
+                        Debug.Write($"{number} ");
+                        tempAnswer += number;
+                    }
+                    Debug.WriteLine($"+=  {tempAnswer}");
+                    break;
+                case '*':
+                    foreach (long number in numbers)
+                    {
+                        if (number == 0) continue;
+                        Debug.Write($"{number} ");
+                        if (tempAnswer == 0) tempAnswer = number;
+                        else tempAnswer *= number; 
+                    }
+                    Debug.WriteLine($"*=  {tempAnswer}");
+                    break;
+            }
+            answer += tempAnswer;
+            Debug.WriteLine($"{answer}");
+            index--;
+        }
 
         return answer;
     }
