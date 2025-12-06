@@ -24,7 +24,7 @@ public static class Day06
         Console.WriteLine();
 
         Console.WriteLine("Day 06 Part Two");
-        time = Benchmark.RepeatTime(() =>
+        time = Benchmark.Time(() =>
         {
             answer = RunPartTwo(inputs);
         });
@@ -36,78 +36,40 @@ public static class Day06
     {
         long answer = 0;
 
-        int line0 = 0;
-        int line1 = 0;
-        int line2 = 0;
-        int line3 = 0;
-        int line4 = 0;
-
-        while (line0 < inputs[0].Length)
+        int operatorLineIndex = inputs.Count - 1;
+        List<long> numbers = [];
+        List<int> indexes = [];
+        for (int i = 0; i <= operatorLineIndex; i++)
         {
-            long input0 = 0;
-            long input1 = 0;
-            long input2 = 0;
-            long input3 = 0;
-            
-            while (line0 < inputs[0].Length && inputs[0][line0] == ' ')
+            indexes.Add(0);
+        }
+
+        while (indexes[0] < inputs[0].Length)
+        {
+            for (int i = 0; i < operatorLineIndex; i++)
             {
-                line0++;
-            }
-            while (line0 < inputs[0].Length && inputs[0][line0] != ' ')
-            {
-                input0 = input0 * 10 +  inputs[0][line0] - '0';
-                line0++;
-            }
-            
-            while (line1 < inputs[1].Length && inputs[1][line1] == ' ')
-            {
-                line1++;
-            }
-            while (line1 < inputs[1].Length && inputs[1][line1] != ' ')
-            {
-                input1 = input1 * 10 +  inputs[1][line1] - '0';
-                line1++;
-            }
-            
-            while (line2 < inputs[2].Length && inputs[2][line2] == ' ')
-            {
-                line2++;
-            }
-            while (line2 < inputs[2].Length && inputs[2][line2] != ' ')
-            {
-                input2 = input2 * 10 +  inputs[2][line2] - '0';
-                line2++;
-            }
-            
-            while (line3 < inputs[3].Length && inputs[3][line3] == ' ')
-            {
-                line3++;
-            }
-            while (line3 < inputs[3].Length && inputs[3][line3] != ' ')
-            {
-                input3 = input3 * 10 +  inputs[3][line3] - '0';
-                line3++;
-            }
-            
-            while (line4 < inputs[4].Length && inputs[4][line4] == ' ')
-            {
-                line4++;
-            }
-            while (line4 < inputs[4].Length && inputs[4][line4] != ' ')
-            {
-                switch (inputs[4][line4])
+                numbers.Add(0);
+                while (indexes[i] < inputs[i].Length && inputs[i][indexes[i]] == ' ')
                 {
-                    case '+':
-                        Debug.WriteLine($"{input0} + {input1} + {input2} + {input3} =  {input0 + input1 + input2 + input3}");
-                        answer += input0 + input1 + input2 + input3;
-                        break;
-                    case '*':
-                        Debug.WriteLine($"{input0} * {input1} * {input2} * {input3} =  {input0 * input1 * input2 * input3}");
-                        answer += input0 * input1 * input2 * input3;
-                        break;
+                    indexes[i]++;
                 }
+                while (indexes[i] < inputs[i].Length && inputs[i][indexes[i]] != ' ')
+                {
+                    numbers[i] = numbers[i] * 10 +  inputs[i][indexes[i]] - '0';
+                    indexes[i]++;
+                }
+            }
+            
+            while (indexes[operatorLineIndex] < inputs[operatorLineIndex].Length && inputs[operatorLineIndex][indexes[operatorLineIndex]] == ' ')
+            {
+                indexes[operatorLineIndex]++;
+            }
+            while (indexes[operatorLineIndex] < inputs[operatorLineIndex].Length && inputs[operatorLineIndex][indexes[operatorLineIndex]] != ' ')
+            {
+                answer += CalculateAnswer(numbers, inputs[operatorLineIndex][indexes[operatorLineIndex]]);
                 Debug.WriteLine($"{answer}");
-                line4++;
+                numbers.Clear();
+                indexes[operatorLineIndex]++;
             }
         }
 
@@ -140,7 +102,7 @@ public static class Day06
             
             if (inputs[operatorLineIndex][index] == ' ') continue;
 
-            answer += CalculateAnswer(numbers, inputs[4][index]);
+            answer += CalculateAnswer(numbers, inputs[operatorLineIndex][index]);
             Debug.WriteLine($"{answer}");
             
             numbers.Clear();
