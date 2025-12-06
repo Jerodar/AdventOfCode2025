@@ -13,7 +13,7 @@ public static class Benchmark
         return stopwatch.Elapsed;
     }
     
-    public static TimeSpan RepeatTime(Action action, int iterations)
+    public static TimeSpan RepeatTime(Action action, int iterations = 100)
     {
         var stopwatch = Stopwatch.StartNew();
         for (int i = 0; i < iterations; i++)

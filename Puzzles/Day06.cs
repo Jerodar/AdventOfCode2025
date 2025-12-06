@@ -24,7 +24,7 @@ public static class Day06
         Console.WriteLine();
 
         Console.WriteLine("Day 06 Part Two");
-        time = Benchmark.Time(() =>
+        time = Benchmark.RepeatTime(() =>
         {
             answer = RunPartTwo(inputs);
         });
@@ -118,63 +118,60 @@ public static class Day06
     {
         long answer = 0;
 
-        int index = inputs[4].Length - 1;
+        int index = inputs[4].Length;
+        int numberIndex = 0;
+        int operatorLineIndex = inputs.Count - 1;
+        List<long> numbers = [];
 
         while (index > 0)
         {
-            long[] numbers = [0,0,0,0,0];
-            long tempAnswer = 0;
-            int numIndex = 0;
-            
-            while (index > 0 && inputs[4][index] == ' ')
-            {
-                if (inputs[0][index] != ' ')
-                    numbers[numIndex] = numbers[numIndex] * 10 + inputs[0][index] - '0';
-                if (inputs[1][index] != ' ')
-                    numbers[numIndex] = numbers[numIndex] * 10 + inputs[1][index] - '0';
-                if (inputs[2][index] != ' ')
-                    numbers[numIndex] = numbers[numIndex] * 10 + inputs[2][index] - '0';
-                if (inputs[3][index] != ' ')
-                    numbers[numIndex] = numbers[numIndex] * 10 + inputs[3][index] - '0';
-                numIndex++;
-                index--;
-            }
-            
-            if (inputs[0][index] != ' ')
-                numbers[numIndex] = numbers[numIndex] * 10 + inputs[0][index] - '0';
-            if (inputs[1][index] != ' ')
-                numbers[numIndex] = numbers[numIndex] * 10 + inputs[1][index] - '0';
-            if (inputs[2][index] != ' ')
-                numbers[numIndex] = numbers[numIndex] * 10 + inputs[2][index] - '0';
-            if (inputs[3][index] != ' ')
-                numbers[numIndex] = numbers[numIndex] * 10 + inputs[3][index] - '0';
-            
-            switch (inputs[4][index])
-            {
-                case '+':
-                    foreach (long number in numbers)
-                    {
-                        Debug.Write($"{number} ");
-                        tempAnswer += number;
-                    }
-                    Debug.WriteLine($"+=  {tempAnswer}");
-                    break;
-                case '*':
-                    foreach (long number in numbers)
-                    {
-                        if (number == 0) continue;
-                        Debug.Write($"{number} ");
-                        if (tempAnswer == 0) tempAnswer = number;
-                        else tempAnswer *= number; 
-                    }
-                    Debug.WriteLine($"*=  {tempAnswer}");
-                    break;
-            }
-            answer += tempAnswer;
-            Debug.WriteLine($"{answer}");
             index--;
+            // check for empty column for both versions of vertical alignment
+            if (inputs[0][index] == ' ' && inputs[operatorLineIndex - 1][index] == ' ' ) continue;
+
+            numbers.Add(0);
+            for (int i = 0; i < operatorLineIndex; i++)
+            {
+                if (inputs[i][index] != ' ')
+                    numbers[numberIndex] = numbers[numberIndex] * 10 + inputs[i][index] - '0';
+            }
+            
+            numberIndex++;
+            
+            if (inputs[operatorLineIndex][index] == ' ') continue;
+
+            answer += CalculateAnswer(numbers, inputs[4][index]);
+            Debug.WriteLine($"{answer}");
+            
+            numbers.Clear();
+            numberIndex = 0;
         }
 
+        return answer;
+    }
+
+    private static long CalculateAnswer(List<long> numbers, char oper)
+    {
+        long answer = 0;
+        foreach (long number in numbers)
+        {
+            if (answer == 0) 
+            {  
+                answer = number;
+                Debug.Write($"{number}");
+            }
+            else if(oper == '+') 
+            {
+                answer += number;
+                Debug.Write($" + {number}");
+            }
+            else
+            {
+                answer *= number;
+                Debug.Write($" * {number}");
+            } 
+        }
+        Debug.WriteLine($" = {answer}");
         return answer;
     }
 }
