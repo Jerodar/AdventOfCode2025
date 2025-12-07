@@ -29,7 +29,7 @@ public static class Day07
             answer = RunPartTwo(inputs);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
-        Console.WriteLine(answer == -1 ? $"Success!" : $"Fail!");
+        Console.WriteLine(answer == 34339203133559 ? $"Success!" : $"Fail!");
     }
 
     private static long RunPartOne(List<string> inputs)
@@ -68,8 +68,36 @@ public static class Day07
     {
         long answer = 0;
 
+        int maxX = inputs[0].Length;
+        long[] timelines = new long[maxX];
+
+        for (int x = 0; x < maxX; x++)
+        {
+            if (inputs[0][x] != 'S') continue;
+            timelines[x] = 1;
+            break;
+        }
+        Debug.Write($" 0: ");
+        Array.ForEach(timelines, x => { Debug.Write($"{x,2} ");});
         Debug.WriteLine("");
 
+        for (int y = 2; y < inputs.Count; y+=2)
+        {
+            for (int x = 0; x < maxX; x++)
+            {
+                if (timelines[x] == 0) continue;
+                if (inputs[y][x] != '^') continue;
+                
+                if (x-1 >= 0) timelines[x-1] += timelines[x];
+                if (x+1 < maxX) timelines[x+1] += timelines[x];
+                timelines[x] = 0;
+            }
+            Debug.Write($"{y,2}: ");
+            Array.ForEach(timelines, x => { Debug.Write($"{x,2} ");});
+            Debug.WriteLine("");
+        }
+
+        answer = timelines.Sum();
         return answer;
     }
 }
