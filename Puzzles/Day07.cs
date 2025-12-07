@@ -24,7 +24,7 @@ public static class Day07
         Console.WriteLine();
 
         Console.WriteLine("Day 07 Part Two");
-        time = Benchmark.Time(() =>
+        time = Benchmark.RepeatTime(() =>
         {
             answer = RunPartTwo(inputs);
         });
@@ -77,9 +77,6 @@ public static class Day07
             timelines[x] = 1;
             break;
         }
-        Debug.Write($" 0: ");
-        Array.ForEach(timelines, x => { Debug.Write($"{x,2} ");});
-        Debug.WriteLine("");
 
         for (int y = 2; y < inputs.Count; y+=2)
         {
@@ -92,9 +89,6 @@ public static class Day07
                 if (x+1 < maxX) timelines[x+1] += timelines[x];
                 timelines[x] = 0;
             }
-            Debug.Write($"{y,2}: ");
-            Array.ForEach(timelines, x => { Debug.Write($"{x,2} ");});
-            Debug.WriteLine("");
         }
 
         answer = timelines.Sum();
