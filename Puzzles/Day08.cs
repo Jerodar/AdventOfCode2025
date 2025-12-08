@@ -35,7 +35,7 @@ public static class Day08
             answer = RunPartTwo(coords);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
-        Console.WriteLine(answer == -1 ? $"Success!" : $"Fail!");
+        Console.WriteLine(answer == 8133642976 ? $"Success!" : $"Fail!");
     }
     
     private static long RunPartOne(List<(int x, int y, int z)> inputs)
@@ -61,14 +61,12 @@ public static class Day08
             }
             else if (groupIdA > 0 && groupIdB > 0)
             {
-                var movingItems = new List<int>();
                 foreach (var item in groups[groupIdB])
                 {
-                    movingItems.Add(item);
                     connected[item] = groupIdA;
                     Debug.WriteLine($"Moving item {item} from {groupIdB} to group {groupIdA}");
                 }
-                groups[groupIdA].AddRange(movingItems);
+                groups[groupIdA].AddRange(groups[groupIdB]);
                 groups.Remove(groupIdB);
             }
             else if (groupIdA > 0)
@@ -131,6 +129,71 @@ public static class Day08
     {
         long answer = 0;
 
+        var distances = GetAllDistances(inputs);
+        distances.Sort((item1, item2) => item1.d.CompareTo(item2.d));
+        
+        var connected = new Dictionary<int, int>();
+        var groups = new Dictionary<int, List<int>>();
+        int newGroupId = 1;
+        for (int i = 0; i < distances.Count; i++)
+        {
+            connected.TryGetValue(distances[i].a, out var groupIdA);
+            connected.TryGetValue(distances[i].b, out var groupIdB);
+            
+            Debug.WriteLine($"Connecting {distances[i].a} - {distances[i].b} groups: {groupIdA} - {groupIdB}");
+            long groupSize;
+            if (groupIdA > 0 && groupIdB > 0 && groupIdA == groupIdB)
+            {
+                groupSize = groups[groupIdA].Count;
+                Debug.WriteLine($"Boxes in same group with size {groupSize}/{inputs.Count}");
+            }
+            else if (groupIdA > 0 && groupIdB > 0)
+            {
+                foreach (var item in groups[groupIdB])
+                {
+                    connected[item] = groupIdA;
+                    Debug.WriteLine($"Moving item {item} from {groupIdB} to group {groupIdA}");
+                }
+                groups[groupIdA].AddRange(groups[groupIdB]);
+                groups.Remove(groupIdB);
+                groupSize = groups[groupIdA].Count;
+                Debug.WriteLine($"Group {groupIdA} is now size {groupSize}/{inputs.Count}");
+            }
+            else if (groupIdA > 0)
+            {
+                groups[groupIdA].Add(distances[i].b);
+                connected.Add(distances[i].b, groupIdA);
+                groupSize = groups[groupIdA].Count;
+                Debug.WriteLine($"Adding item {distances[i].b} to group {groupIdA} with size {groupSize}/{inputs.Count}");
+            }
+            else if (groupIdB > 0)
+            {
+                groups[groupIdB].Add(distances[i].a);
+                connected.Add(distances[i].a, groupIdB);
+                groupSize = groups[groupIdB].Count;
+                Debug.WriteLine($"Adding item {distances[i].a} to group {groupIdB} with size {groupSize}/{inputs.Count}");
+            }
+            else
+            {
+                connected.Add(distances[i].a, newGroupId);
+                connected.Add(distances[i].b, newGroupId);
+                groups[newGroupId] =
+                [
+                    distances[i].a,
+                    distances[i].b
+                ];
+                Debug.WriteLine($"Created new group {newGroupId}");
+                groupSize = groups[newGroupId].Count;
+                newGroupId++;
+            }
+
+            if (groupSize == inputs.Count)
+            {
+                answer = (long)inputs[distances[i].a].x * inputs[distances[i].b].x;
+                break;
+            }
+        }
+        
         Debug.WriteLine("");
 
         return answer;
