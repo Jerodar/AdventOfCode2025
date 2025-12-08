@@ -24,7 +24,7 @@ public static class Day07
         Console.WriteLine();
 
         Console.WriteLine("Day 07 Part Two");
-        time = Benchmark.RepeatTime(() =>
+        time = Benchmark.Time(() =>
         {
             answer = RunPartTwo(inputs);
         });
