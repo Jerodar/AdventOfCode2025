@@ -36,34 +36,32 @@ public static class Day09
     {
         long answer = 0;
         
-        var coords = new List<(long x, long y)>();
+        var coords = new List<(int x, int y)>();
         foreach (var line in inputs)
         {
-            coords.Add((long.Parse(line[0]), long.Parse(line[1])));
+            coords.Add((int.Parse(line[0]), int.Parse(line[1])));
         }
-
-        List<(int a, int b, long d)> sizes = GetAllRectangleSizes(coords);
-        answer = sizes.Max(x => x.d);
         
-        Debug.WriteLine("");
+        answer = GetMaxRectangleSize(coords);
 
         return answer;
     }
     
-    private static List<(int a, int b, long d)> GetAllRectangleSizes(List<(long x, long y)> coords)
+    private static long GetMaxRectangleSize(List<(int x, int y)> coords)
     {
-        var distances = new List<(int a, int b, long d)>();
+        long maxSize = 0; 
         for (int i = 0; i < coords.Count; i++)
         {
             for (int j = i + 1; j < coords.Count; j++)
             {
-                distances.Add((i,j,GetRectangleSize(coords[i], coords[j])));
+                long size = GetRectangleSize(coords[i], coords[j]);
+                if (size > maxSize) maxSize = size;
             }
         }
-        return distances;
+        return maxSize;
     }
 
-    private static long GetRectangleSize((long x, long y) a, (long x, long y) b)
+    private static long GetRectangleSize((int x, int y) a, (int x, int y) b)
     {
         long lengthX = Math.Abs(b.x - a.x) + 1;
         long lengthY = Math.Abs(b.y - a.y) + 1;
@@ -75,13 +73,13 @@ public static class Day09
     {
         long answer = 0;
         
-        var redCoords = new List<(long x, long y)>();
-        var edgeCoords = new Dictionary<long, HashSet<long>>();
+        var redCoords = new List<(int x, int y)>();
+        var edgeCoords = new Dictionary<int, HashSet<int>>();
         
-        (long x, long y) lastCoord = (0, 0);
+        (int x, int y) lastCoord = (0, 0);
         foreach (var line in inputs)
         {
-            (long x, long y) newCoord = (long.Parse(line[0]), long.Parse(line[1]));
+            (int x, int y) newCoord = (int.Parse(line[0]), int.Parse(line[1]));
             redCoords.Add(newCoord);
             
             if (lastCoord != (0, 0))
@@ -100,13 +98,13 @@ public static class Day09
         return answer;
     }
 
-    private static void StorePointLine((long x, long y) newCoord, (long x, long y) lastCoord, Dictionary<long, HashSet<long>> edgeCoords)
+    private static void StorePointLine((int x, int y) newCoord, (int x, int y) lastCoord, Dictionary<int, HashSet<int>> edgeCoords)
     {
         if (newCoord.x == lastCoord.x)
         {
-            long startY = lastCoord.y < newCoord.y ? lastCoord.y : newCoord.y;
-            long endY = lastCoord.y > newCoord.y ? lastCoord.y : newCoord.y;
-            for (long y = startY;  y <= endY; y++)
+            int startY = lastCoord.y < newCoord.y ? lastCoord.y : newCoord.y;
+            int endY = lastCoord.y > newCoord.y ? lastCoord.y : newCoord.y;
+            for (int y = startY;  y <= endY; y++)
                 if (edgeCoords.ContainsKey(newCoord.x))
                     edgeCoords[newCoord.x].Add(y);
                 else
@@ -114,9 +112,9 @@ public static class Day09
         }
         else
         {
-            long startX = lastCoord.x < newCoord.x ? lastCoord.x : newCoord.x;
-            long endX = lastCoord.x > newCoord.x ? lastCoord.x : newCoord.x;
-            for (long x = startX;  x <= endX; x++)
+            int startX = lastCoord.x < newCoord.x ? lastCoord.x : newCoord.x;
+            int endX = lastCoord.x > newCoord.x ? lastCoord.x : newCoord.x;
+            for (int x = startX;  x <= endX; x++)
                 if (edgeCoords.ContainsKey(x))
                     edgeCoords[x].Add(newCoord.y);
                 else
@@ -124,7 +122,7 @@ public static class Day09
         }
     }
 
-    private static long GetMaxRectangleSizeInsidePolygon(List<(long x, long y)> coords, Dictionary<long, HashSet<long>> edges)
+    private static long GetMaxRectangleSizeInsidePolygon(List<(int x, int y)> coords, Dictionary<int, HashSet<int>> edges)
     {
         long maxSize = 0; 
         for (int i = 0; i < coords.Count; i++)
@@ -135,8 +133,8 @@ public static class Day09
                 long size = GetRectangleSize(coords[i], coords[j]);
                 if (size <= maxSize) continue;
                 
-                (long x, long y) corner1 = (coords[i].x, coords[j].y);
-                (long x, long y) corner2 = (coords[j].x, coords[i].y);
+                (int x, int y) corner1 = (coords[i].x, coords[j].y);
+                (int x, int y) corner2 = (coords[j].x, coords[i].y);
                     
                 if (!IsEdgeInPoly(coords[i], corner1, edges)) continue;
                 if (!IsEdgeInPoly(coords[i], corner2, edges)) continue;
@@ -150,8 +148,8 @@ public static class Day09
         return maxSize;
     }
 
-    private static bool IsEdgeInPoly((long x, long y) start, (long x, long y) end,
-        Dictionary<long, HashSet<long>> edges)
+    private static bool IsEdgeInPoly((int x, int y) start, (int x, int y) end,
+        Dictionary<int, HashSet<int>> edges)
     {
         // start a sort of raycast from the start of the grid
         // keep track if it crosses an edge of the polygon
@@ -162,22 +160,22 @@ public static class Day09
         {
             if (!edges.ContainsKey(start.x))  return false;
 
-            long startY = start.y < end.y ? start.y : end.y;
-            long endY = start.y > end.y ? start.y : end.y;
+            int startY = start.y < end.y ? start.y : end.y;
+            int endY = start.y > end.y ? start.y : end.y;
             
             bool lastY = false;
             bool alongEdge = false;
             bool insideBeforeEdge = false;
             int delta = 0;
-            for (long y = 0; y <= endY; y++)
+            for (int y = 0; y <= endY; y++)
             {
                 if (edges[start.x].Contains(y))
                 {
                     if (!alongEdge && edges[start.x].Contains(y + 1))
                     {   // edge is parallel to raycast, store if the edge originated from left or right of the ray
-                        if (edges.TryGetValue(start.x - 1, out HashSet<long>? value1) && value1.Contains(y))
+                        if (edges.TryGetValue(start.x - 1, out HashSet<int>? value1) && value1.Contains(y))
                             delta = 1;
-                        else if (edges.TryGetValue(start.x + 1, out HashSet<long>? value2) && value2.Contains(y))
+                        else if (edges.TryGetValue(start.x + 1, out HashSet<int>? value2) && value2.Contains(y))
                             delta = -1;
 
                         alongEdge = true;
@@ -195,7 +193,7 @@ public static class Day09
                     if (lastY && alongEdge)
                     {
                         // look in previous y to see which direction the parallel edge turned to
-                        if (edges.TryGetValue(start.x + delta, out HashSet<long>? value) && value.Contains(y - 1))
+                        if (edges.TryGetValue(start.x + delta, out HashSet<int>? value) && value.Contains(y - 1))
                             inside = !insideBeforeEdge;
                         else
                             inside = insideBeforeEdge;
@@ -218,11 +216,11 @@ public static class Day09
             bool alongEdge = false;
             bool insideBeforeEdge = false;
             int delta = 0;
-            for (long x = 0; x <= endX; x++)
+            for (int x = 0; x <= endX; x++)
             {
-                if (edges.TryGetValue(x, out HashSet<long>? value) && value.Contains(start.y))
+                if (edges.TryGetValue(x, out HashSet<int>? value) && value.Contains(start.y))
                 {
-                    if (!alongEdge && edges.TryGetValue(x + 1, out HashSet<long>? nextValue) && nextValue.Contains(start.y))
+                    if (!alongEdge && edges.TryGetValue(x + 1, out HashSet<int>? nextValue) && nextValue.Contains(start.y))
                     {   // edge is parallel to raycast, store if the edge originated from left or right of the ray
                         if (value.Contains(start.y - 1))
                             delta = 1;
@@ -245,7 +243,7 @@ public static class Day09
                     {
                         // look in previous y to see if edge went back in the same direction it came from
                         // if edge turns in the other direction, flip the inside flag
-                        if (edges.TryGetValue(x - 1, out HashSet<long>? nextValue) && nextValue.Contains(start.y + delta))
+                        if (edges.TryGetValue(x - 1, out HashSet<int>? nextValue) && nextValue.Contains(start.y + delta))
                             inside = !insideBeforeEdge;
                         else
                             inside = insideBeforeEdge;
