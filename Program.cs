@@ -9,4 +9,5 @@ Console.WriteLine("Advent of Code 2025");
 // Day05.Run();
 // Day06.Run();
 // Day07.Run();
-Day08.Run();
+// Day08.Run();
+Day09.Run();
