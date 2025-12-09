@@ -31,6 +31,7 @@ public static class Day09
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
         Console.Write(answer > 158460858 ? "" : $"Too low! ");
         Console.Write(answer < 2912110226 ? "" : $"Too High! ");
+        Console.Write(answer < 2481277007 ? "" : $"Maybe too High! ");
         Console.WriteLine(answer is > 158460858 and < 2912110226 ? "Success!" : $"Fail!");
     }
     
@@ -81,9 +82,10 @@ public static class Day09
         var redCoordsSet = new HashSet<(long x, long y)>();
         var edgeCoords = new Dictionary<long, HashSet<long>>();
         (long x, long y) lastCoord = (0, 0);
+        (long x, long y) newCoord = (0, 0);
         foreach (var line in inputs)
         {
-            (long x, long y) newCoord = (long.Parse(line[0]), long.Parse(line[1]));
+            newCoord = (long.Parse(line[0]), long.Parse(line[1]));
             redCoords.Add(newCoord);
             redCoordsSet.Add(newCoord);
             
@@ -123,7 +125,39 @@ public static class Day09
             
             lastCoord = newCoord;
         }
-        
+
+        newCoord = redCoords.First();
+        if (newCoord.x == lastCoord.x)
+        {
+            if (newCoord.y > lastCoord.y)
+                for (long y = lastCoord.y; y <= newCoord.y; y++)
+                    if (edgeCoords.ContainsKey(newCoord.x))
+                        edgeCoords[newCoord.x].Add(y);
+                    else
+                        edgeCoords[newCoord.x] = [y];
+            else
+                for (long y = newCoord.y; y <= lastCoord.y; y++)
+                    if (edgeCoords.ContainsKey(newCoord.x))
+                        edgeCoords[newCoord.x].Add(y);
+                    else
+                        edgeCoords[newCoord.x] = [y];
+        }
+        else
+        {
+            if (newCoord.x > lastCoord.x)
+                for (long x = lastCoord.x; x <= newCoord.x; x++)
+                    if (edgeCoords.ContainsKey(x))
+                        edgeCoords[x].Add(newCoord.y);
+                    else
+                        edgeCoords[x] = [newCoord.y];
+            else
+                for (long x = newCoord.x; x <= lastCoord.x; x++)
+                    if (edgeCoords.ContainsKey(x))
+                        edgeCoords[x].Add(newCoord.y);
+                    else
+                        edgeCoords[x] = [newCoord.y];
+        }
+
         answer = GetRectangleSizeInsidePolygon(redCoords, redCoordsSet, edgeCoords);
 
         Debug.WriteLine("");
@@ -145,6 +179,7 @@ public static class Day09
                 long distance = GetRectangleSize(coords[i], coords[j]);
                 if (distance > maxDistance)
                 {
+                    Console.WriteLine($"{i},{j} - {coords[i]} - {coords[j]} - {distance}");
                     maxDistance = distance;
                 }
             }
@@ -188,7 +223,11 @@ public static class Day09
                 else
                 {
                     if (lastY && alongEdge)
+                    {
                         inside = insideBeforeEdge;
+                        alongEdge = false;
+                    }
+                        
                     lastY = false;
                     if (y > startY && !inside)
                         return false;
@@ -221,7 +260,11 @@ public static class Day09
                 else
                 {
                     if (lastX && alongEdge)
+                    {
                         inside = insideBeforeEdge;
+                        alongEdge = false;
+                    }
+
                     lastX = false;
                     if (x > startX && !inside)
                         return false;
