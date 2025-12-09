@@ -74,8 +74,8 @@ public static class Day09
         long answer = 0;
         
         var redCoords = new List<(int x, int y)>();
-        var horizontalLines = new Dictionary<int, SortedDictionary<int, int>>();
-        var verticalLines = new Dictionary<int, SortedDictionary<int, int>>();
+        var horizontalLines = new Dictionary<int, Dictionary<int, int>>();
+        var verticalLines = new Dictionary<int, Dictionary<int, int>>();
         
         (int x, int y) lastCoord = (0, 0);
         (int x, int y) newCoord;
@@ -109,17 +109,17 @@ public static class Day09
         return answer;
     }
 
-    private static void StoreLine(int p1, int p2, int key, Dictionary<int, SortedDictionary<int, int>> lineDict)
+    private static void StoreLine(int p1, int p2, int key, Dictionary<int, Dictionary<int, int>> lineDict)
     {
         int start = p1 < p2 ? p1 : p2;
         int end = p1 > p2 ? p1 : p2;
         if (lineDict.ContainsKey(key))
             lineDict[key].TryAdd(start, end);
         else
-            lineDict[key] = new SortedDictionary<int, int> { { start, end } };
+            lineDict[key] = new Dictionary<int, int> { { start, end } };
     }
 
-    private static long GetMaxRectangleSizeInsidePolygon(List<(int x, int y)> coords, Dictionary<int, SortedDictionary<int, int>> verticalLines, Dictionary<int, SortedDictionary<int, int>> horizontalLines)
+    private static long GetMaxRectangleSizeInsidePolygon(List<(int x, int y)> coords, Dictionary<int, Dictionary<int, int>> verticalLines, Dictionary<int, Dictionary<int, int>> horizontalLines)
     {
         long maxSize = 0; 
         for (int i = 0; i < coords.Count; i++)
@@ -145,7 +145,7 @@ public static class Day09
         return maxSize;
     }
 
-    private static bool IsLineInPoly(int p1, int p2, int key, Dictionary<int, SortedDictionary<int, int>> crossLineDict, Dictionary<int, SortedDictionary<int, int>> parallelLineDict)
+    private static bool IsLineInPoly(int p1, int p2, int key, Dictionary<int, Dictionary<int, int>> crossLineDict, Dictionary<int, Dictionary<int, int>> parallelLineDict)
     {
         bool inside = false;
         
@@ -157,24 +157,17 @@ public static class Day09
         for (int i = 0; i < end; i++)
         {
             // Check for any crossing lines at this point on the line
-            if (crossLineDict.TryGetValue(i, out SortedDictionary<int, int>? crossLine) && crossLine!.Any(pair => pair.Key <= key && pair.Value >= key))
+            if (crossLineDict.TryGetValue(i, out Dictionary<int, int>? crossLine) && crossLine.Any(pair => pair.Key <= key && pair.Value >= key))
             {
                 if (parallelLines.TryGetValue(i, out var lineEnd))
                 {
                     // found the start of a parallel line, check the crosslines connecting to it:
                     //   __  this shape results in the inside flag flipping     __  this shape results keeps inside flag the same
                     //   I   after leaving the parallel line                    I   after leaving the parallel line
-                    // __I                                                      I_
-                    // so check the columns next to the start and end of the parallel line for crosslines
-                    // and check if they go to opposite directions
-                
-                    var startCrossLines = crossLineDict[i];
-                    var endCrossLines = crossLineDict[lineEnd];
-                
-                    if (startCrossLines!.ContainsKey(key) && 
-                        endCrossLines!.ContainsValue(key) ||
-                        startCrossLines!.ContainsValue(key) && 
-                        endCrossLines!.ContainsKey(key))
+                    // __I                                                      I_  
+                    // since the left end of the line is the Key in the dict, check if only one has the key equal to the start of the parallel line
+   
+                    if (crossLineDict[i].ContainsKey(key) != crossLineDict[lineEnd].ContainsKey(key))
                         inside = !inside;
  
                     i = lineEnd + 1;
