@@ -29,7 +29,9 @@ public static class Day09
             answer = RunPartTwo(inputs);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
-        Console.WriteLine(answer > 158460858 ? $"Success!" : $"Fail! Too low!");
+        Console.Write(answer > 158460858 ? "" : $"Too low! ");
+        Console.Write(answer < 2912110226 ? "" : $"Too High! ");
+        Console.WriteLine(answer is > 158460858 and < 2912110226 ? "Success!" : $"Fail!");
     }
     
     private static long RunPartOne(List<List<string>> inputs)
@@ -138,23 +140,12 @@ public static class Day09
             {
                 (long x, long y) corner1 = (coords[i].x, coords[j].y);
                 (long x, long y) corner2 = (coords[j].x, coords[i].y);
-                if (coordsSet.Contains(corner1))
+                if (!IsEdgeInPoly(coords[i], corner1, edges)) continue;
+                if (!IsEdgeInPoly(coords[i], corner2, edges)) continue;
+                long distance = GetRectangleSize(coords[i], coords[j]);
+                if (distance > maxDistance)
                 {
-                    if (!IsEdgeInPoly(coords[i], corner2, edges)) continue;
-                    long distance = GetRectangleSize(coords[i], coords[j]);
-                    if (distance > maxDistance)
-                    {
-                        maxDistance = distance;
-                    }
-                }
-                else if (coordsSet.Contains(corner2))
-                {
-                    if (!IsEdgeInPoly(coords[i], corner1, edges)) continue;
-                    long distance = GetRectangleSize(coords[i], coords[j]);
-                    if (distance > maxDistance)
-                    {
-                        maxDistance = distance;
-                    }
+                    maxDistance = distance;
                 }
             }
         }
