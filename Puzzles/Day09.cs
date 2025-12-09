@@ -74,55 +74,52 @@ public static class Day09
         long answer = 0;
         
         var redCoords = new List<(int x, int y)>();
-        var edgeCoords = new Dictionary<int, HashSet<int>>();
+        var horizontalLines = new Dictionary<int, SortedDictionary<int, int>>();
+        var verticalLines = new Dictionary<int, SortedDictionary<int, int>>();
         
         (int x, int y) lastCoord = (0, 0);
+        (int x, int y) newCoord;
         foreach (var line in inputs)
         {
-            (int x, int y) newCoord = (int.Parse(line[0]), int.Parse(line[1]));
+            newCoord = (int.Parse(line[0]), int.Parse(line[1]));
             redCoords.Add(newCoord);
-            
+
             if (lastCoord != (0, 0))
-                StorePointLine(newCoord, lastCoord, edgeCoords);
+            {
+                if (newCoord.x == lastCoord.x)
+                    StoreLine(lastCoord.y, newCoord.y, newCoord.x, verticalLines);
+                else
+                    StoreLine(lastCoord.x, newCoord.x, newCoord.y, horizontalLines);
+            }
             
             lastCoord = newCoord;
         }
         
         // Also store the line between the last and first point
-        StorePointLine(redCoords.First(), lastCoord, edgeCoords);
+        newCoord = redCoords.First();
+        if (newCoord.x == lastCoord.x)
+            StoreLine(lastCoord.y, newCoord.y, newCoord.x, verticalLines);
+        else
+            StoreLine(lastCoord.x, newCoord.x, newCoord.y, horizontalLines);
 
-        answer = GetMaxRectangleSizeInsidePolygon(redCoords, edgeCoords);
+        answer = GetMaxRectangleSizeInsidePolygon(redCoords, verticalLines, horizontalLines);
 
         Debug.WriteLine("");
 
         return answer;
     }
 
-    private static void StorePointLine((int x, int y) newCoord, (int x, int y) lastCoord, Dictionary<int, HashSet<int>> edgeCoords)
+    private static void StoreLine(int p1, int p2, int key, Dictionary<int, SortedDictionary<int, int>> lineDict)
     {
-        if (newCoord.x == lastCoord.x)
-        {
-            int startY = lastCoord.y < newCoord.y ? lastCoord.y : newCoord.y;
-            int endY = lastCoord.y > newCoord.y ? lastCoord.y : newCoord.y;
-            for (int y = startY;  y <= endY; y++)
-                if (edgeCoords.ContainsKey(newCoord.x))
-                    edgeCoords[newCoord.x].Add(y);
-                else
-                    edgeCoords[newCoord.x] = [y];
-        }
+        int start = p1 < p2 ? p1 : p2;
+        int end = p1 > p2 ? p1 : p2;
+        if (lineDict.ContainsKey(key))
+            lineDict[key].TryAdd(start, end);
         else
-        {
-            int startX = lastCoord.x < newCoord.x ? lastCoord.x : newCoord.x;
-            int endX = lastCoord.x > newCoord.x ? lastCoord.x : newCoord.x;
-            for (int x = startX;  x <= endX; x++)
-                if (edgeCoords.ContainsKey(x))
-                    edgeCoords[x].Add(newCoord.y);
-                else
-                    edgeCoords[x] = [newCoord.y];
-        }
+            lineDict[key] = new SortedDictionary<int, int> { { start, end } };
     }
 
-    private static long GetMaxRectangleSizeInsidePolygon(List<(int x, int y)> coords, Dictionary<int, HashSet<int>> edges)
+    private static long GetMaxRectangleSizeInsidePolygon(List<(int x, int y)> coords, Dictionary<int, SortedDictionary<int, int>> verticalLines, Dictionary<int, SortedDictionary<int, int>> horizontalLines)
     {
         long maxSize = 0; 
         for (int i = 0; i < coords.Count; i++)
@@ -136,10 +133,10 @@ public static class Day09
                 (int x, int y) corner1 = (coords[i].x, coords[j].y);
                 (int x, int y) corner2 = (coords[j].x, coords[i].y);
                     
-                if (!IsEdgeInPoly(coords[i], corner1, edges)) continue;
-                if (!IsEdgeInPoly(coords[i], corner2, edges)) continue;
-                if (!IsEdgeInPoly(coords[j], corner1, edges)) continue;
-                if (!IsEdgeInPoly(coords[j], corner2, edges)) continue;
+                if (!IsLineInPoly(coords[i].y, corner1.y, corner1.x, horizontalLines, verticalLines)) continue;
+                if (!IsLineInPoly(coords[i].x, corner2.x, corner2.y, verticalLines, horizontalLines)) continue;
+                if (!IsLineInPoly(coords[j].y, corner2.y, corner2.x, horizontalLines, verticalLines)) continue;
+                if (!IsLineInPoly(coords[j].x, corner1.x, corner1.y, verticalLines, horizontalLines)) continue;
 
                 Debug.WriteLine($"{i},{j} - {coords[i]} - {coords[j]} - {size}");
                 maxSize = size;
@@ -148,114 +145,51 @@ public static class Day09
         return maxSize;
     }
 
-    private static bool IsEdgeInPoly((int x, int y) start, (int x, int y) end,
-        Dictionary<int, HashSet<int>> edges)
+    private static bool IsLineInPoly(int p1, int p2, int key, Dictionary<int, SortedDictionary<int, int>> crossLineDict, Dictionary<int, SortedDictionary<int, int>> parallelLineDict)
     {
-        // start a sort of raycast from the start of the grid
-        // keep track if it crosses an edge of the polygon
-        // if it goes outside the polygon between the start and end of coords, the edge is not completely in the polygon
-        
         bool inside = false;
-        if (start.x == end.x)
+        
+        int start = p1 < p2 ? p1 : p2;
+        int end = p1 > p2 ? p1 : p2;
+        
+        if (!parallelLineDict.TryGetValue(key, out var parallelLines)) parallelLines = [];
+ 
+        for (int i = 0; i < end; i++)
         {
-            if (!edges.ContainsKey(start.x))  return false;
-
-            int startY = start.y < end.y ? start.y : end.y;
-            int endY = start.y > end.y ? start.y : end.y;
-            
-            bool lastY = false;
-            bool alongEdge = false;
-            bool insideBeforeEdge = false;
-            int delta = 0;
-            for (int y = 0; y <= endY; y++)
+            // Check for any crossing lines at this point on the line
+            if (crossLineDict.TryGetValue(i, out SortedDictionary<int, int>? crossLine) && crossLine!.Any(pair => pair.Key <= key && pair.Value >= key))
             {
-                if (edges[start.x].Contains(y))
+                if (parallelLines.TryGetValue(i, out var lineEnd))
                 {
-                    if (!alongEdge && edges[start.x].Contains(y + 1))
-                    {   // edge is parallel to raycast, store if the edge originated from left or right of the ray
-                        if (edges.TryGetValue(start.x - 1, out HashSet<int>? value1) && value1.Contains(y))
-                            delta = 1;
-                        else if (edges.TryGetValue(start.x + 1, out HashSet<int>? value2) && value2.Contains(y))
-                            delta = -1;
-
-                        alongEdge = true;
-                        insideBeforeEdge = inside;
-                        inside = true;
-                    }
-                    
-                    if (!lastY && !alongEdge)
+                    // found the start of a parallel line, check the crosslines connecting to it:
+                    //   __  this shape results in the inside flag flipping     __  this shape results keeps inside flag the same
+                    //   I   after leaving the parallel line                    I   after leaving the parallel line
+                    // __I                                                      I_
+                    // so check the columns next to the start and end of the parallel line for crosslines
+                    // and check if they go to opposite directions
+                
+                    var startCrossLines = crossLineDict[i];
+                    var endCrossLines = crossLineDict[lineEnd];
+                
+                    if (startCrossLines!.ContainsKey(key) && 
+                        endCrossLines!.ContainsValue(key) ||
+                        startCrossLines!.ContainsValue(key) && 
+                        endCrossLines!.ContainsKey(key))
                         inside = !inside;
-                    
-                    lastY = true;
+ 
+                    i = lineEnd + 1;
                 }
                 else
                 {
-                    if (lastY && alongEdge)
-                    {
-                        // look in previous y to see which direction the parallel edge turned to
-                        if (edges.TryGetValue(start.x + delta, out HashSet<int>? value) && value.Contains(y - 1))
-                            inside = !insideBeforeEdge;
-                        else
-                            inside = insideBeforeEdge;
-                        alongEdge = false;
-                        delta = 0;
-                    }
-                        
-                    lastY = false;
-                    if (y > startY && !inside)
-                        return false;
+                    // Crossing an intersecting line in the middle of it always flip inside flag
+                    inside = !inside;
+                    i++;
                 }
             }
-        }
-        else if (start.y == end.y)
-        {
-            long startX = start.x < end.x ? start.x : end.x;
-            long endX = start.x > end.x ? start.x : end.x;
             
-            bool lastX = false;
-            bool alongEdge = false;
-            bool insideBeforeEdge = false;
-            int delta = 0;
-            for (int x = 0; x <= endX; x++)
-            {
-                if (edges.TryGetValue(x, out HashSet<int>? value) && value.Contains(start.y))
-                {
-                    if (!alongEdge && edges.TryGetValue(x + 1, out HashSet<int>? nextValue) && nextValue.Contains(start.y))
-                    {   // edge is parallel to raycast, store if the edge originated from left or right of the ray
-                        if (value.Contains(start.y - 1))
-                            delta = 1;
-                        else if (value.Contains(start.y + 1))
-                            delta = -1;
-
-                        alongEdge = true;
-                        insideBeforeEdge = inside;
-                        inside = true;
-                    }
-                    
-                    if (!lastX && !alongEdge)
-                        inside = !inside;
-                    
-                    lastX = true;
-                }
-                else
-                {
-                    if (lastX && alongEdge)
-                    {
-                        // look in previous y to see if edge went back in the same direction it came from
-                        // if edge turns in the other direction, flip the inside flag
-                        if (edges.TryGetValue(x - 1, out HashSet<int>? nextValue) && nextValue.Contains(start.y + delta))
-                            inside = !insideBeforeEdge;
-                        else
-                            inside = insideBeforeEdge;
-                        alongEdge = false;
-                        delta = 0;
-                    }
-
-                    lastX = false;
-                    if (x > startX && !inside)
-                        return false;
-                }
-            }
+            // if moving outside of polygon at any point after the checked line starts return false
+            if (i > start && !inside) 
+                return false;
         }
 
         return inside;
