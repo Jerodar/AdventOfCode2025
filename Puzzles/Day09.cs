@@ -167,7 +167,7 @@ public static class Day09
     
     private static long GetRectangleSizeInsidePolygon(List<(long x, long y)> coords, HashSet<(long x, long y)> coordsSet, Dictionary<long, HashSet<long>> edges)
     {
-        long maxDistance = 0;
+        long maxDistance = 0; 
         for (int i = 0; i < coords.Count; i++)
         {
             for (int j = i + 1; j < coords.Count; j++)
@@ -176,6 +176,8 @@ public static class Day09
                 (long x, long y) corner2 = (coords[j].x, coords[i].y);
                 if (!IsEdgeInPoly(coords[i], corner1, edges)) continue;
                 if (!IsEdgeInPoly(coords[i], corner2, edges)) continue;
+                if (!IsEdgeInPoly(coords[j], corner1, edges)) continue;
+                if (!IsEdgeInPoly(coords[j], corner2, edges)) continue;
                 long distance = GetRectangleSize(coords[i], coords[j]);
                 if (distance > maxDistance)
                 {
@@ -205,14 +207,22 @@ public static class Day09
             bool lastY = false;
             bool alongEdge = false;
             bool insideBeforeEdge = false;
+            int delta = 0;
             for (long y = 0; y <= endY; y++)
             {
                 if (edges[start.x].Contains(y))
                 {
-                    if (edges[start.x].Contains(y + 1))
-                    {
+                    if (!alongEdge && edges[start.x].Contains(y + 1))
+                    {   // edge is paralel to raycast
+                        // dodge the edge by moving 1 sideways
+                        if (edges.TryGetValue(start.x - 1, out HashSet<long>? value1) && value1.Contains(y))
+                            delta = 1;
+                        else if (edges.TryGetValue(start.x + 1, out HashSet<long>? value2) && value2.Contains(y))
+                            delta = -1;
+
                         alongEdge = true;
                         insideBeforeEdge = inside;
+                        inside = true;
                     }
                     
                     if (!lastY && !alongEdge)
@@ -224,8 +234,13 @@ public static class Day09
                 {
                     if (lastY && alongEdge)
                     {
-                        inside = insideBeforeEdge;
+                        // look in previous y to see which direction the paralel edge turned to
+                        if (edges.TryGetValue(start.x + delta, out HashSet<long>? value) && value.Contains(y - 1))
+                            inside = !insideBeforeEdge;
+                        else
+                            inside = insideBeforeEdge;
                         alongEdge = false;
+                        delta = 0;
                     }
                         
                     lastY = false;
@@ -242,14 +257,23 @@ public static class Day09
             bool lastX = false;
             bool alongEdge = false;
             bool insideBeforeEdge = false;
+            int delta = 0;
             for (long x = 0; x <= endX; x++)
             {
                 if (edges.TryGetValue(x, out HashSet<long>? value) && value.Contains(start.y))
                 {
-                    if (edges.TryGetValue(x + 1, out HashSet<long>? nextValue) && nextValue.Contains(start.y))
+                    if (!alongEdge && edges.TryGetValue(x + 1, out HashSet<long>? nextValue) && nextValue.Contains(start.y))
                     {
+                        // edge is paralel to raycast
+                        // dodge the edge by moving 1 sideways
+                        if (value.Contains(start.y - 1))
+                            delta = 1;
+                        else if (value.Contains(start.y + 1))
+                            delta = -1;
+
                         alongEdge = true;
                         insideBeforeEdge = inside;
+                        inside = true;
                     }
                     
                     if (!lastX && !alongEdge)
@@ -261,8 +285,13 @@ public static class Day09
                 {
                     if (lastX && alongEdge)
                     {
-                        inside = insideBeforeEdge;
+                        // look in previous y to see which direction the paralel edge turned to
+                        if (edges.TryGetValue(x - 1, out HashSet<long>? nextValue) && nextValue.Contains(start.y + delta))
+                            inside = !insideBeforeEdge;
+                        else
+                            inside = insideBeforeEdge;
                         alongEdge = false;
+                        delta = 0;
                     }
 
                     lastX = false;
