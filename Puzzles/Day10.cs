@@ -38,9 +38,9 @@ public static class Day10
 
         foreach (var input in inputs)
         {
-            uint target = ReadTarget(input[0]);
-            List<uint> buttons = ReadButtons(input);
-            var result = FindShortestSolve(target, buttons);
+            uint target = ReadLightsTarget(input[0]);
+            List<uint> buttons = ReadLightsButtons(input);
+            var result = FindShortestLightsSolve(target, buttons);
             Debug.WriteLine(result);
             answer += result;
         }
@@ -50,7 +50,7 @@ public static class Day10
         return answer;
     }
 
-    private static uint ReadTarget(string s)
+    private static uint ReadLightsTarget(string s)
     {
         uint result = 0;
         for (int i = 1; i < s.Length - 1; i++)
@@ -60,7 +60,7 @@ public static class Day10
         return result;
     }
     
-    private static List<uint> ReadButtons(List<string> elements)
+    private static List<uint> ReadLightsButtons(List<string> elements)
     {
         List<uint> buttons = [];
 
@@ -76,12 +76,12 @@ public static class Day10
         return buttons;
     }
     
-    private static int FindShortestSolve(uint target, List<uint> buttons)
+    private static int FindShortestLightsSolve(uint target, List<uint> buttons)
     {
-        return PushButtons(target, buttons, 0, 0, 1);;
+        return PushLightsButtons(target, buttons, 0, 0, 1);;
     }
 
-    private static int PushButtons(uint target, List<uint> buttons, int start, uint state, int depth)
+    private static int PushLightsButtons(uint target, List<uint> buttons, int start, uint state, int depth)
     {
         int smallest = int.MaxValue;
         for (int i = start; i < buttons.Count; i++)
@@ -92,7 +92,7 @@ public static class Day10
                 return depth;
             }
 
-            int result = PushButtons(target, buttons, i + 1, newState, depth + 1);
+            int result = PushLightsButtons(target, buttons, i + 1, newState, depth + 1);
             if (result < smallest) smallest = result;
         }
 
@@ -103,8 +103,83 @@ public static class Day10
     {
         long answer = 0;
 
+        foreach (var input in inputs)
+        {
+            var target = ReadJoltageTarget(input[input.Count - 1]);
+            var buttons = ReadJoltageButtons(input);
+
+            var result = FindShortestJoltageSolve(target, buttons);
+            Debug.WriteLine(result);
+            answer += result;
+        }
+
         Debug.WriteLine("");
 
         return answer;
+    }
+
+    private static List<int> ReadJoltageTarget(string s)
+    {
+        return [.. s[1..^1].Split(',').Select(int.Parse)]; ;
+    }
+
+    private static List<List<int>> ReadJoltageButtons(List<string> elements)
+    {
+        List<List<int>> buttons = [];
+
+        for (int i = 1; i < elements.Count - 1; i++)
+        {
+            var numbers = elements[i][1..^1].Split(',').Select(int.Parse).ToList();
+            buttons.Add(numbers);
+        }
+
+        return buttons;
+    }
+
+    private static int FindShortestJoltageSolve(List<int> target, List<List<int>> buttons)
+    {
+        List<int> state = [];
+        for (int i = 0; i < target.Count; i++)
+        {
+            state.Add(0);
+        }
+        return PushJoltageButtons(target, buttons, state, 1);
+    }
+
+    private static int PushJoltageButtons(List<int> target, List<List<int>> buttons, List<int> state, int depth)
+    {
+        int smallest = int.MaxValue;
+        for (int i = 0; i < buttons.Count; i++)
+        {
+            List<int> newState = [.. state];
+            for (int j = 0;  j < buttons[i].Count; j++)
+                newState[buttons[i][j]]++;
+
+            if (Enumerable.SequenceEqual(target, newState))
+            {
+                return depth;
+            }
+
+            bool failed = false;
+            for (int j = 0; j < newState.Count; j++)
+            {
+                if (newState[j] > target[j])
+                {
+                    failed = true;
+                    break;
+                }   
+            }
+            if (!failed)
+            {
+                int result = PushJoltageButtons(target, buttons, newState, depth + 1);
+                if (result < smallest)
+                {
+                    Debug.WriteLine($"New min of {depth} found at {i}");
+                    smallest = result;
+                }
+            }
+        }
+
+        return smallest;
     }
 }
