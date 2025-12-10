@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using AdventOfCode2025.Utility;
 
 namespace AdventOfCode2025.Puzzles;
@@ -108,7 +109,7 @@ public static class Day10
             var target = ReadJoltageTarget(input[input.Count - 1]);
             var buttons = ReadJoltageButtons(input);
 
-            var result = FindShortestJoltageSolve(target, buttons);
+            var result = BFSShortestJoltageSolve(target, buttons);
             Debug.WriteLine(result);
             answer += result;
         }
@@ -181,5 +182,78 @@ public static class Day10
         }
 
         return smallest;
+    }
+
+    private static int BFSShortestJoltageSolve(List<int> target, List<List<int>> buttons)
+    {
+        List<Node> visited = [];
+        Queue<Node> queue = [];
+
+        int[] state = new int[target.Count];
+        for (int i = 0; i < target.Count; i++)
+        {
+            state[i] = 0;
+        }
+        int[] endstate = new int[target.Count];
+        for (int i = 0; i < target.Count; i++)
+        {
+            endstate[i] = target[i];
+        }
+        var start = new Node(state, 0);
+        var goal = new Node(endstate, 0);
+        
+        queue.Enqueue(start);
+
+        while (queue.Count > 0)
+        {
+            Node node = queue.Dequeue();
+
+            bool hasVisited = visited.Where(x => x.Equals(node)).Any();
+
+            if (hasVisited) continue;
+            visited.Add(node);
+
+            foreach (List<int> button in  buttons)
+            {
+                Node next = new(node.value, node.cost + 1);
+                foreach (int digit in button)
+                    next.value[digit]++;
+                if (next.Equals(goal))
+                    return next.cost;
+                else if (!next.GreaterThen(goal))
+                    queue.Enqueue(next);
+            }
+        }
+
+        return 0;
+    }
+
+    private class Node
+    {
+        public int[] value;
+        public int cost;
+
+        public Node(int[] newValue, int currentCost)
+        {
+            value = new int[newValue.Length];
+            newValue.CopyTo(value, 0 );
+            cost = currentCost;
+        }
+
+        public bool Equals(Node other)
+        {
+            if (value.Length != other.value.Length) return false;
+            for(int i = 0; i < value.Length; i++)
+                if (value[i] != other.value[i]) return false;
+            return true;
+        }
+
+        public bool GreaterThen(Node other)
+        {
+            if (value.Length != other.value.Length) return true;
+            for (int i = 0; i < value.Length; i++)
+                if (value[i] > other.value[i]) return true;
+            return false;
+        }
     }
 }
