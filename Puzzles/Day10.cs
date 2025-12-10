@@ -30,7 +30,7 @@ public static class Day10
             answer = RunPartTwo(inputs);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
-        Console.WriteLine(answer == -1 ? $"Success!" : $"Fail!");
+        Console.WriteLine(answer == 21111 ? $"Success!" : $"Fail!");
     }
     
     private static long RunPartOne(List<List<string>> inputs)
@@ -41,7 +41,7 @@ public static class Day10
         {
             uint target = ReadLightsTarget(input[0]);
             List<uint> buttons = ReadLightsButtons(input);
-            var result = FindShortestLightsSolve(target, buttons);
+            var result = FindShortestLightsBFS(target, buttons);
             Debug.WriteLine(result);
             answer += result;
         }
@@ -77,27 +77,40 @@ public static class Day10
         return buttons;
     }
     
-    private static int FindShortestLightsSolve(uint target, List<uint> buttons)
+    private static int FindShortestLightsBFS(uint target, List<uint> buttons)
     {
-        return PushLightsButtons(target, buttons, 0, 0, 1);;
-    }
-
-    private static int PushLightsButtons(uint target, List<uint> buttons, int start, uint state, int depth)
-    {
-        int smallest = int.MaxValue;
-        for (int i = start; i < buttons.Count; i++)
+        Queue<Node> queue = [];
+        
+        queue.Enqueue(new Node());
+        
+        while (queue.Count > 0)
         {
-            uint newState = state ^ buttons[i];
-            if (newState == target)
+            Node node = queue.Dequeue();
+
+            for (int i = node.ButtonIndex; i < buttons.Count; i++)
             {
-                return depth;
+                Node next = new()
+                {
+                    Value = node.Value ^ buttons[i], 
+                    Cost = node.Cost + 1, 
+                    ButtonIndex = i + 1
+                };
+
+                if (next.Value == target) return next.Cost;
+                
+                queue.Enqueue(next);
             }
-
-            int result = PushLightsButtons(target, buttons, i + 1, newState, depth + 1);
-            if (result < smallest) smallest = result;
         }
-
-        return smallest;
+        
+        return 0;
+    }
+    
+    
+    private struct Node
+    {
+        public uint Value;
+        public int Cost;
+        public int ButtonIndex;
     }
 
     private static long RunPartTwo(List<List<string>> inputs)
@@ -109,7 +122,7 @@ public static class Day10
             var target = ReadJoltageTarget(input[^1]);
             var buttons = ReadJoltageButtons(input);
 
-            var result = SolveLeastStepsToTarget(target, buttons);
+            var result = FindShortestJoltageZ3(target, buttons);
             Debug.WriteLine(result);
             answer += result;
         }
@@ -121,7 +134,7 @@ public static class Day10
 
     private static List<int> ReadJoltageTarget(string s)
     {
-        return [.. s[1..^1].Split(',').Select(int.Parse)]; ;
+        return [.. s[1..^1].Split(',').Select(int.Parse)];
     }
 
     private static List<List<int>> ReadJoltageButtons(List<string> elements)
@@ -137,7 +150,7 @@ public static class Day10
         return buttons;
     }
 
-    private static long SolveLeastStepsToTarget(List<int> target, List<List<int>> buttons)
+    private static long FindShortestJoltageZ3(List<int> target, List<List<int>> buttons)
     {
         // Context is used to get to all the helper functions and classes used to build an equation
         using var z3Context = new Context();
