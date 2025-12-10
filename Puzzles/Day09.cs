@@ -121,27 +121,33 @@ public static class Day09
 
     private static long GetMaxRectangleSizeInsidePolygon(List<(int x, int y)> coords, Dictionary<int, Dictionary<int, int>> verticalLines, Dictionary<int, Dictionary<int, int>> horizontalLines)
     {
-        long maxSize = 0; 
+        SortedDictionary<long,((int x, int y) a, (int x, int y) b)> rectangles = [];
         for (int i = 0; i < coords.Count; i++)
         {
-            Debug.WriteLine($"Checking {i+1}/{coords.Count}");
             for (int j = i + 1; j < coords.Count; j++)
             {
                 long size = GetRectangleSize(coords[i], coords[j]);
-                if (size <= maxSize) continue;
-                
-                (int x, int y) corner1 = (coords[i].x, coords[j].y);
-                (int x, int y) corner2 = (coords[j].x, coords[i].y);
-                    
-                if (!IsLineInPoly(coords[i].y, corner1.y, corner1.x, horizontalLines, verticalLines)) continue;
-                if (!IsLineInPoly(coords[i].x, corner2.x, corner2.y, verticalLines, horizontalLines)) continue;
-                if (!IsLineInPoly(coords[j].y, corner2.y, corner2.x, horizontalLines, verticalLines)) continue;
-                if (!IsLineInPoly(coords[j].x, corner1.x, corner1.y, verticalLines, horizontalLines)) continue;
-
-                Debug.WriteLine($"{i},{j} - {coords[i]} - {coords[j]} - {size}");
-                maxSize = size;
+                rectangles.TryAdd(size, (coords[i],coords[j]));
             }
         }
+
+        Debug.WriteLine($"Collected {rectangles.Count} rectangles.");
+        long maxSize = 0; 
+        foreach (var (size, (pointA, pointB)) in rectangles.Reverse())
+        {
+            if (size <= maxSize) continue;
+            var pointC = (pointA.x, pointB.y);
+            var pointD = (pointB.x, pointA.y);
+                    
+            if (!IsLineInPoly(pointA.y, pointC.y, pointC.x, horizontalLines, verticalLines)) continue;
+            if (!IsLineInPoly(pointA.x, pointD.x, pointD.y, verticalLines, horizontalLines)) continue;
+            if (!IsLineInPoly(pointB.y, pointD.y, pointD.x, horizontalLines, verticalLines)) continue;
+            if (!IsLineInPoly(pointB.x, pointC.x, pointC.y, verticalLines, horizontalLines)) continue;
+
+            Debug.WriteLine($"{pointA} - {pointB} - {size}");
+            maxSize = size;
+        }
+        
         return maxSize;
     }
 
