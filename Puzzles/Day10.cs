@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
+using Microsoft.Z3;
 using AdventOfCode2025.Utility;
 
 namespace AdventOfCode2025.Puzzles;
@@ -103,13 +103,13 @@ public static class Day10
     private static long RunPartTwo(List<List<string>> inputs)
     {
         long answer = 0;
-
+        
         foreach (var input in inputs)
         {
-            var target = ReadJoltageTarget(input[input.Count - 1]);
+            var target = ReadJoltageTarget(input[^1]);
             var buttons = ReadJoltageButtons(input);
 
-            var result = BFSShortestJoltageSolve(target, buttons);
+            var result = SolveLeastStepsToTarget(target, buttons);
             Debug.WriteLine(result);
             answer += result;
         }
@@ -137,123 +137,52 @@ public static class Day10
         return buttons;
     }
 
-    private static int FindShortestJoltageSolve(List<int> target, List<List<int>> buttons)
+    private static long SolveLeastStepsToTarget(List<int> target, List<List<int>> buttons)
     {
-        List<int> state = [];
-        for (int i = 0; i < target.Count; i++)
-        {
-            state.Add(0);
-        }
-        return PushJoltageButtons(target, buttons, state, 1);
-    }
-
-    private static int PushJoltageButtons(List<int> target, List<List<int>> buttons, List<int> state, int depth)
-    {
-        int smallest = int.MaxValue;
+        // Context is used to get to all the helper functions and classes used to build an equation
+        using var z3Context = new Context();
+        //  The MkOptimize holds all the equations and runs an optimize on it in the end
+        using var z3Optimizer = z3Context.MkOptimize();
+        
+        List<IntExpr> buttonVariables = [];
         for (int i = 0; i < buttons.Count; i++)
         {
-            List<int> newState = [.. state];
-            for (int j = 0;  j < buttons[i].Count; j++)
-                newState[buttons[i][j]]++;
-
-            if (Enumerable.SequenceEqual(target, newState))
-            {
-                return depth;
-            }
-
-            bool failed = false;
-            for (int j = 0; j < newState.Count; j++)
-            {
-                if (newState[j] > target[j])
-                {
-                    failed = true;
-                    break;
-                }   
-            }
-            if (!failed)
-            {
-                int result = PushJoltageButtons(target, buttons, newState, depth + 1);
-                if (result < smallest)
-                {
-                    Debug.WriteLine($"New min of {depth} found at {i}");
-                    smallest = result;
-                }
-            }
+            // Add the constants that represent the values the buttons increment
+            buttonVariables.Add(z3Context.MkIntConst($"x{i}"));
+            // And add a constraint that they are >=0
+            z3Optimizer.Add(z3Context.MkGe(buttonVariables[i], z3Context.MkInt(0)));
         }
 
-        return smallest;
-    }
-
-    private static int BFSShortestJoltageSolve(List<int> target, List<List<int>> buttons)
-    {
-        List<Node> visited = [];
-        Queue<Node> queue = [];
-
-        int[] state = new int[target.Count];
+        // Create the equation that determines the value of each joltage display in target
         for (int i = 0; i < target.Count; i++)
         {
-            state[i] = 0;
+            // Collect all the buttons that affect this joltage display
+            List<IntExpr> targetButtonVariables = [];
+            for (int j = 0; j < buttons.Count; j++)
+            {
+                if (buttons[j].Contains(i)) targetButtonVariables.Add(buttonVariables[j]);
+            }
+            
+            // Add the equation x1 + x2 + ... = target[i]
+            if (targetButtonVariables.Count == 0) continue;
+            var buttonSum = targetButtonVariables.Count == 1
+                ? targetButtonVariables[0]
+                : z3Context.MkAdd(targetButtonVariables);
+            z3Optimizer.Add(z3Context.MkEq(buttonSum, z3Context.MkInt(target[i])));
         }
-        int[] endstate = new int[target.Count];
-        for (int i = 0; i < target.Count; i++)
-        {
-            endstate[i] = target[i];
-        }
-        var start = new Node(state, 0);
-        var goal = new Node(endstate, 0);
         
-        queue.Enqueue(start);
-
-        while (queue.Count > 0)
+        // Set as objective to minimize the result of all button variables added together
+        z3Optimizer.MkMinimize(z3Context.MkAdd(buttonVariables));
+        // Calculate the results and creates a Model
+        z3Optimizer.Check();
+        
+        // Get the resulting values for each button variable from the model and sum them together
+        long sum = 0;
+        foreach (var button in buttonVariables)
         {
-            Node node = queue.Dequeue();
-
-            bool hasVisited = visited.Where(x => x.Equals(node)).Any();
-
-            if (hasVisited) continue;
-            visited.Add(node);
-
-            foreach (List<int> button in  buttons)
-            {
-                Node next = new(node.value, node.cost + 1);
-                foreach (int digit in button)
-                    next.value[digit]++;
-                if (next.Equals(goal))
-                    return next.cost;
-                else if (!next.GreaterThen(goal))
-                    queue.Enqueue(next);
-            }
+            sum += ((IntNum)z3Optimizer.Model.Evaluate(button)).Int64;
         }
-
-        return 0;
-    }
-
-    private class Node
-    {
-        public int[] value;
-        public int cost;
-
-        public Node(int[] newValue, int currentCost)
-        {
-            value = new int[newValue.Length];
-            newValue.CopyTo(value, 0 );
-            cost = currentCost;
-        }
-
-        public bool Equals(Node other)
-        {
-            if (value.Length != other.value.Length) return false;
-            for(int i = 0; i < value.Length; i++)
-                if (value[i] != other.value[i]) return false;
-            return true;
-        }
-
-        public bool GreaterThen(Node other)
-        {
-            if (value.Length != other.value.Length) return true;
-            for (int i = 0; i < value.Length; i++)
-                if (value[i] > other.value[i]) return true;
-            return false;
-        }
+        
+        return sum;
     }
 }
