@@ -120,9 +120,12 @@ public static class Day11
             }
         }
         
-        var sortedNodes = TopologicalSort(nodes.Values.ToList());
-        int dacIndex = sortedNodes.IndexOf("dac");
-        var fftIndex = sortedNodes.IndexOf("fft");
+        var sortedNodesList = TopologicalSort(nodes.Values.ToList());
+        Dictionary<string, int> sortedNodes= [];
+        for (int i = 0; i < sortedNodesList.Count; i++)
+            sortedNodes.Add(sortedNodesList[i], i);
+        int dacIndex = sortedNodes["dac"];
+        var fftIndex = sortedNodes["fft"];
         long paths;
         if (fftIndex < dacIndex)
         {
@@ -154,7 +157,7 @@ public static class Day11
         return answer;
     }
     
-    private static long CountAllPathsPassingTargets(Node start, string goal, List<string> topoSorted, int limitIndex)
+    private static long CountAllPathsPassingTargets(Node start, string goal, Dictionary<string, int> topoSorted, int limitIndex)
     {
         long paths = 0;
         Queue<Node> queue = [];
@@ -172,12 +175,7 @@ public static class Day11
                 continue;
             }
 
-            if (limitIndex > 0)
-            {
-                // Check in the topological sorted list if the node is past the goal
-                var currentIndex = topoSorted.IndexOf(node.Id);
-                if (currentIndex > limitIndex) continue;
-            }
+            if (limitIndex > 0 && topoSorted[node.Id] > limitIndex) continue;
 
             foreach (var neighbour in node.Neighbours)
                 queue.Enqueue(neighbour);
