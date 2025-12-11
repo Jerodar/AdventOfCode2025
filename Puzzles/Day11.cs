@@ -92,14 +92,78 @@ public static class Day11
     {
         public readonly string Id = id;
         public readonly List<Node> Neighbours = [];
+        public bool VisitedFft = false;
+        public bool VisitedDac = false;
     }
 
     private static long RunPartTwo(List<List<string>> inputs)
     {
         long answer = 0;
+        
+        Dictionary<string,Node> nodes = [];
+
+        foreach (var input in inputs)
+        {
+            var id = input[0][..^1];
+            if (!nodes.TryGetValue(id, out var newNode))
+            {
+                newNode = new Node(id);
+                nodes[id] = newNode;
+            }
+
+            for (int i = 1; i < input.Count; i++)
+            {
+                if (!nodes.TryGetValue(input[i], out var neighbour))
+                {
+                    neighbour = new Node(input[i]);
+                    nodes[input[i]] = neighbour;
+                }
+                newNode.Neighbours.Add(neighbour);
+            }
+        }
+        
+        answer = CountAllPathsPassingTargets(nodes["svr"],"out");
 
         Debug.WriteLine("");
 
         return answer;
+    }
+    
+    private static long CountAllPathsPassingTargets(Node start, string goal)
+    {
+        long paths = 0;
+        Queue<Node> queue = [];
+    
+        queue.Enqueue(start);
+    
+        while (queue.Count > 0)
+        {
+            Node node = queue.Dequeue();
+            
+            if (node.Id == "fft") 
+                node.VisitedFft = true;
+            else if (node.Id == "dac") 
+                node.VisitedDac = true;
+
+            foreach (var neighbour in node.Neighbours)
+            {
+                if (neighbour.Id == goal)
+                {
+                    if (node.VisitedDac && node.VisitedFft)
+                        paths++;
+                }
+                else
+                {
+                    Node nextNode =  new Node(neighbour.Id);
+                    nextNode.Neighbours.AddRange(neighbour.Neighbours);
+                    nextNode.VisitedFft = node.VisitedFft;
+                    nextNode.VisitedDac = node.VisitedDac;
+                    
+                    queue.Enqueue(nextNode);
+                }
+            }
+        }
+
+        return paths;
     }
 }
