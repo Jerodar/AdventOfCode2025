@@ -11,4 +11,5 @@ Console.WriteLine("Advent of Code 2025");
 // Day07.Run();
 // Day08.Run();
 // Day09.Run();
-Day10.Run();
+// Day10.Run();
+Day11.Run();
