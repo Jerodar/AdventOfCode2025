@@ -29,7 +29,7 @@ public static class Day11
             answer = RunPartTwo(inputs);
         });
         Console.WriteLine($"Answer: {answer} in {time.TotalMilliseconds} ms");
-        Console.WriteLine(answer == -1 ? $"Success!" : $"Fail!");
+        Console.WriteLine(answer == 349322478796032 ? $"Success!" : $"Fail!");
     }
     
     private static long RunPartOne(List<List<string>> inputs)
@@ -92,8 +92,6 @@ public static class Day11
     {
         public readonly string Id = id;
         public readonly List<Node> Neighbours = [];
-        public bool VisitedFft = false;
-        public bool VisitedDac = false;
     }
 
     private static long RunPartTwo(List<List<string>> inputs)
@@ -123,62 +121,74 @@ public static class Day11
         }
         
         var sortedNodes = TopologicalSort(nodes.Values.ToList());
-        answer = CountAllPathsPassingTargets(nodes["svr"],"out", sortedNodes);
+        int dacIndex = sortedNodes.IndexOf("dac");
+        var fftIndex = sortedNodes.IndexOf("fft");
+        long paths;
+        if (fftIndex < dacIndex)
+        {
+            paths = CountAllPathsPassingTargets(nodes["svr"], "fft", sortedNodes, fftIndex);
+            answer = paths;
+            Console.WriteLine($"Reached fft with {paths} different paths. Total paths {answer}");
+            paths = CountAllPathsPassingTargets(nodes["fft"], "dac", sortedNodes, dacIndex);
+            answer *= paths;
+            Console.WriteLine($"Reached dac with {paths} different paths. Total paths {answer}");
+            paths = CountAllPathsPassingTargets(nodes["dac"], "out", sortedNodes, 0);
+            answer *= paths;
+            Console.WriteLine($"Reach out with {paths} different paths. Total paths {answer}");
+        }
+        else
+        {
+            paths = CountAllPathsPassingTargets(nodes["svr"], "dac", sortedNodes, fftIndex);
+            answer = paths;
+            Console.WriteLine($"Reached dac with {paths} different paths. Total paths {answer}");
+            paths = CountAllPathsPassingTargets(nodes["dac"], "fft", sortedNodes, dacIndex);
+            answer *= paths;
+            Console.WriteLine($"Reached fft with {paths} different paths. Total paths {answer}");
+            paths = CountAllPathsPassingTargets(nodes["fft"], "out", sortedNodes, 0);
+            answer *= paths;
+            Console.WriteLine($"Reached out with {paths} different paths. Total paths {answer}");
+        }
 
         Debug.WriteLine("");
 
         return answer;
     }
     
-    private static long CountAllPathsPassingTargets(Node start, string goal, List<Node> topoSorted)
+    private static long CountAllPathsPassingTargets(Node start, string goal, List<string> topoSorted, int limitIndex)
     {
         long paths = 0;
         Queue<Node> queue = [];
-        
-        var dacIndex = topoSorted.FindIndex(n => n.Id == "dac");
-        var fftIndex = topoSorted.FindIndex(n => n.Id == "fft");
         
         queue.Enqueue(start);
     
         while (queue.Count > 0)
         {
             Node node = queue.Dequeue();
-            
-            if (node.Id == "dac") 
-                node.VisitedDac = true;
-            else if (node.Id == "fft") 
-                node.VisitedFft = true;
-            
-            // Check in the topological sorted list if the node is past any of the intermediate goals
-            var currentIndex = topoSorted.FindIndex(n => n.Id == node.Id);
-            if (!node.VisitedDac && currentIndex > dacIndex) continue;
-            if (!node.VisitedFft && currentIndex > fftIndex) continue;
+
+            if (node.Id == goal)
+            {
+                paths++;
+                Debug.WriteLine($"Reached goal, total {paths} paths found");
+                continue;
+            }
+
+            if (limitIndex > 0)
+            {
+                // Check in the topological sorted list if the node is past the goal
+                var currentIndex = topoSorted.IndexOf(node.Id);
+                if (currentIndex > limitIndex) continue;
+            }
 
             foreach (var neighbour in node.Neighbours)
-            {
-                if (neighbour.Id == goal)
-                {
-                    if (node.VisitedDac && node.VisitedFft)
-                        paths++;
-                }
-                else
-                {
-                    Node nextNode =  new Node(neighbour.Id);
-                    nextNode.Neighbours.AddRange(neighbour.Neighbours);
-                    nextNode.VisitedFft = node.VisitedFft;
-                    nextNode.VisitedDac = node.VisitedDac;
-                    
-                    queue.Enqueue(nextNode);
-                }
-            }
+                queue.Enqueue(neighbour);
         }
 
         return paths;
     }
 
-    private static List<Node> TopologicalSort(List<Node> nodes)
+    private static List<string> TopologicalSort(List<Node> nodes)
     {
-        List<Node> results = [];
+        List<string> results = [];
         
         Dictionary<string,int> inDegree = new();
         Queue<Node> queue = [];
@@ -195,7 +205,7 @@ public static class Day11
         while (queue.Count > 0)
         {
             Node node = queue.Dequeue();
-            results.Add(node);
+            results.Add(node.Id);
             foreach (var neighbour in node.Neighbours)
             {
                 inDegree[neighbour.Id]--;
